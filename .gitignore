@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build output
+dist/
+client/dist/
+server/dist/
+
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+server/*.db
+server/*.db-shm
+server/*.db-wal
+server/*.sqlite
+
+# Secrets
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Generated certificates and storage artifacts
+server/storage/certificates/*
+!server/storage/certificates/.gitkeep
+server/storage/keys/*
+!server/storage/keys/.gitkeep
+
+# Logs and system noise
+*.log
+npm-debug.log*
+coverage/
+.DS_Store
