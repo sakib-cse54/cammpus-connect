@@ -86,9 +86,9 @@ export const Register: React.FC = () => {
               className="w-16 h-16 rounded-2xl shadow-md ring-2 ring-blue-900/10 object-cover"
             />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Create Student Account</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Create your account</h1>
           <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-            Join chartered university societies, reserve seats with ACID concurrency, and earn verified credentials.
+            Join clubs, reserve event seats and earn certificates.
           </p>
         </div>
 
@@ -198,7 +198,7 @@ export const Register: React.FC = () => {
             />
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500 space-y-1">
             <span className="font-semibold text-slate-700 block">Security Password Policy:</span>
             <span>Must contain at least 8 characters, one uppercase letter, one lowercase letter, one numeric digit, and one special symbol.</span>
           </div>
@@ -208,7 +208,7 @@ export const Register: React.FC = () => {
               type="submit"
               variant="primary"
               size="md"
-              className="w-full py-2.5 rounded-xl shadow-md"
+              fullWidth
               isLoading={submitting}
               leftIcon={<UserPlus className="w-4 h-4" />}
             >

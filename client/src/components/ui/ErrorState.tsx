@@ -24,7 +24,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, title, onRetry, c
       <div className="space-y-1">
         <p className="text-sm font-bold text-slate-900">{title ?? t('common.state.errorTitle')}</p>
         <p className="text-xs text-slate-600">{message}</p>
-        {requestId && <p className="text-[11px] font-mono text-slate-500">{t('common.state.requestId', { id: requestId })}</p>}
+        {requestId && <p className="text-xs font-mono text-slate-500">{t('common.state.requestId', { id: requestId })}</p>}
       </div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry} leftIcon={<RefreshCw className="w-3.5 h-3.5" />} className="min-h-[44px]">

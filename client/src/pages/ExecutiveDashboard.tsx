@@ -1,35 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Users, Calendar, QrCode, FileText, CheckCircle2, 
   XCircle, Plus, Send, Download, AlertCircle, RefreshCw, 
   Clock, MapPin, Ticket, ShieldCheck, ChevronRight, X, ExternalLink
 } from 'lucide-react';
 import { api } from '../services/api.js';
-import type { ClubsResponse, EventResponse, EventsResponse, MembersResponse, RosterResponse } from '../services/responses.js';
+import type { ClubsResponse, EventResponse, EventsResponse, MembersResponse, RosterResponse, VenuesResponse } from '../services/responses.js';
 import { useAuth } from '../context/AuthContext.js';
-import { Club, EventItem } from '../types.js';
+import { Club, EventItem, Venue } from '../types.js';
 import { DynamicQrModal } from '../components/DynamicQrModal.js';
 import { Badge } from '../components/ui/Badge.js';
-import { Button } from '../components/ui/Button.js';
+import { Button, buttonClasses } from '../components/ui/Button.js';
 import { StatCard } from '../components/ui/StatCard.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Input, Textarea } from '../components/ui/Input.js';
 import { Alert } from '../components/ui/Alert.js';
+import { EmptyState } from '../components/ui/EmptyState.js';
 import { useToast } from '../components/ui/Toast.js';
 import { formatDateTime } from '../lib/utils.js';
+import { fromDhakaInputValue } from '../lib/dateBd.js';
 
 export const ExecutiveDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const preselectedEventId = searchParams.get('eventId');
 
   const [clubs, setClubs] = useState<Club[]>([]);
   const [selectedClubId, setSelectedClubId] = useState<string>('');
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clubsLoaded, setClubsLoaded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,11 +56,13 @@ export const ExecutiveDashboard: React.FC = () => {
     title: '',
     description: '',
     venue: '',
+    venue_id: '',
     start_time: '',
     end_time: '',
     capacity: 50,
     registration_deadline: '',
-    requires_feedback_for_cert: true
+    requires_feedback_for_cert: true,
+    po_tag_code: 'PO5'
   });
 
   // Post Announcement Modal
@@ -64,9 +71,14 @@ export const ExecutiveDashboard: React.FC = () => {
 
   const fetchClubs = async () => {
     try {
-      const res = await api.get<ClubsResponse>('/clubs');
-      const clubList = res.clubs || [];
+      // Only list clubs this user can manage; admins can manage every club.
+      const [clubsRes, venuesRes] = await Promise.all([
+        api.get<ClubsResponse>(user?.role === 'ADMIN' ? '/clubs' : '/me/clubs'),
+        api.get<VenuesResponse>('/venues').catch(() => ({ venues: [] }))
+      ]);
+      const clubList = clubsRes.clubs || [];
       setClubs(clubList);
+      setVenues(venuesRes.venues?.filter(v => Boolean(v.is_active)) || []);
 
       if (preselectedEventId) {
         try {
@@ -86,6 +98,66 @@ export const ExecutiveDashboard: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch clubs');
+    } finally {
+      setClubsLoaded(true);
+    }
+  };
+
+  const handleVenueSelect = (venueId: string) => {
+    if (venueId === 'custom' || !venueId) {
+      setNewEventData(prev => ({ ...prev, venue_id: '', venue: '' }));
+    } else {
+      const v = venues.find(item => item.id === venueId);
+      if (v) {
+        setNewEventData(prev => ({
+          ...prev,
+          venue_id: v.id,
+          venue: v.name,
+          capacity: v.capacity || prev.capacity
+        }));
+      }
+    }
+  };
+
+  const handleCreateDraft = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedClubId) return;
+
+    try {
+      setActionLoading(true);
+      // datetime-local inputs carry no offset; the API requires ISO 8601 with one.
+      await api.post('/events', {
+        title: newEventData.title,
+        description: newEventData.description,
+        venue: newEventData.venue,
+        venue_id: newEventData.venue_id || undefined,
+        club_id: selectedClubId,
+        capacity: Number(newEventData.capacity),
+        po_tags: newEventData.po_tag_code ? [{ code: newEventData.po_tag_code, weight: 2 }] : undefined,
+        requires_feedback_for_cert: newEventData.requires_feedback_for_cert,
+        start_time: fromDhakaInputValue(newEventData.start_time),
+        end_time: fromDhakaInputValue(newEventData.end_time),
+        registration_deadline: fromDhakaInputValue(newEventData.registration_deadline)
+      });
+      setShowCreateModal(false);
+      setNewEventData({
+        title: '',
+        description: '',
+        venue: '',
+        venue_id: '',
+        start_time: '',
+        end_time: '',
+        capacity: 50,
+        registration_deadline: '',
+        requires_feedback_for_cert: true,
+        po_tag_code: 'PO5'
+      });
+      toast.success('Event proposal drafted successfully.');
+      await fetchClubDetails(selectedClubId);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create event proposal');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -96,8 +168,8 @@ export const ExecutiveDashboard: React.FC = () => {
       setError(null);
 
       const [eventsRes, membersRes] = await Promise.all([
-        api.get<EventsResponse>(`/clubs/${clubId}/events`).catch(() => api.get<EventsResponse>(`/events?club_id=${clubId}`)),
-        api.get<MembersResponse>(`/clubs/${clubId}/members`).catch(() => ({ members: [] }))
+        api.get<EventsResponse>(`/clubs/${clubId}/events`),
+        api.get<MembersResponse>(`/clubs/${clubId}/members`)
       ]);
 
       setEvents(eventsRes.events || []);
@@ -126,36 +198,6 @@ export const ExecutiveDashboard: React.FC = () => {
     }
   }, [selectedClubId]);
 
-  const handleCreateDraft = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedClubId) return;
-
-    try {
-      setActionLoading(true);
-      await api.post('/events', {
-        ...newEventData,
-        club_id: selectedClubId,
-        capacity: Number(newEventData.capacity)
-      });
-      setShowCreateModal(false);
-      setNewEventData({
-        title: '',
-        description: '',
-        venue: '',
-        start_time: '',
-        end_time: '',
-        capacity: 50,
-        registration_deadline: '',
-        requires_feedback_for_cert: true
-      });
-      toast.success('Event proposal drafted successfully.');
-      await fetchClubDetails(selectedClubId);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to create event proposal');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleSubmitForReview = async (eventId: string) => {
     try {
@@ -173,7 +215,7 @@ export const ExecutiveDashboard: React.FC = () => {
   const handleReviewMembership = async (membershipId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       setActionLoading(true);
-      await api.patch(`/clubs/${selectedClubId}/members/${membershipId}`, { status });
+      await api.patch(`/clubs/${selectedClubId}/members/${membershipId}`, { decision: status });
       toast.success(`Membership application ${status === 'APPROVED' ? 'approved' : 'rejected'}.`);
       await fetchClubDetails(selectedClubId);
     } catch (err: any) {
@@ -246,23 +288,36 @@ export const ExecutiveDashboard: React.FC = () => {
   const approvedMembers = members.filter(m => m.status === 'APPROVED');
   const pendingApplicants = members.filter(m => m.status === 'PENDING');
 
+  if (clubsLoaded && clubs.length === 0) {
+    return (
+      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <EmptyState
+          title={error ? 'Could not load your clubs' : 'You are not managing a club yet'}
+          description={error ?? 'Club tools appear here once a club approves you as an executive or you are assigned as its faculty advisor.'}
+          actionLabel="Browse clubs"
+          onAction={() => navigate('/clubs')}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
+    <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
       {/* Top Banner Header */}
-      <div className="bg-slate-950 text-white rounded-2xl p-6 sm:p-8 shadow-elevation border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-blue-900 text-white rounded-2xl p-6 sm:p-8 border border-blue-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-blue-400" />
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Executive Desk Station</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Club dashboard</h1>
           </div>
           <p className="text-xs text-slate-400">
-            Governed by Club Executives and Faculty Advisors | Operator: {user?.fullName} ({user?.email})
+            Signed in as {user?.fullName}
           </p>
         </div>
 
         {/* Club Selector Dropdown */}
         <div className="flex items-center gap-3">
-          <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Chartered Club:</label>
+          <label className="text-xs font-bold text-slate-400 tracking-wider">Chartered Club:</label>
           <select
             value={selectedClubId}
             onChange={(e) => setSelectedClubId(e.target.value)}
@@ -275,13 +330,19 @@ export const ExecutiveDashboard: React.FC = () => {
         </div>
       </div>
 
+      {error && (
+        <Alert variant="error" title="Could not load club data">
+          {error}
+        </Alert>
+      )}
+
       {/* Metrics Row */}
       {currentClub && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <StatCard
             title="Club Category"
             value={currentClub.category}
-            subtitle="Chartered Domain"
+            subtitle="Club focus"
             icon={<ShieldCheck className="w-6 h-6 text-blue-900" />}
             variant="primary"
           />
@@ -312,7 +373,7 @@ export const ExecutiveDashboard: React.FC = () => {
       {/* Action Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Events and Operations Workflow</h2>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Events and Operations Workflow</h2>
           <p className="text-xs text-slate-500">Draft proposals, launch dynamic QR scans, and review attendance</p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -341,7 +402,7 @@ export const ExecutiveDashboard: React.FC = () => {
           <table aria-label="Club Events List Table" className="w-full text-left border-collapse text-xs">
             <caption className="sr-only">Club Events List</caption>
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-black font-bold uppercase text-[11px]">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
                 <th className="py-3 px-4">Event Title</th>
                 <th className="py-3 px-4">Venue & Time</th>
                 <th className="py-3 px-4">Capacity Meter</th>
@@ -366,7 +427,7 @@ export const ExecutiveDashboard: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 text-slate-600">
                       <div>{ev.venue}</div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-xs text-slate-400 font-mono">
                         {formatDateTime(ev.start_time)}
                       </div>
                     </td>
@@ -436,7 +497,7 @@ export const ExecutiveDashboard: React.FC = () => {
           <table aria-label="Club Membership Applications Table" className="w-full text-left border-collapse text-xs">
             <caption className="sr-only">Club Membership Applications</caption>
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-black font-bold uppercase text-[11px]">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
                 <th className="py-2.5 px-4">Applicant</th>
                 <th className="py-2.5 px-4">Student ID</th>
                 <th className="py-2.5 px-4">Department</th>
@@ -517,13 +578,55 @@ export const ExecutiveDashboard: React.FC = () => {
             placeholder="e.g. AI & Robotics Innovation Workshop 2026"
           />
 
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Institutional Venue
+            </label>
+            <select
+              value={newEventData.venue_id || 'custom'}
+              onChange={(e) => handleVenueSelect(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="custom">-- Custom Venue / Room Location --</option>
+              {venues.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name} ({v.building ? `${v.building} - ` : ''}Capacity: {v.capacity})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <Input
-            label="Venue / Room Location"
+            label="Venue Location Name"
             required
             value={newEventData.venue}
             onChange={(e) => setNewEventData({ ...newEventData, venue: e.target.value })}
             placeholder="e.g. Auditorium Hall B / Lab 402"
           />
+
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Proposed BAETE Program Outcome (PO Tag)
+            </label>
+            <select
+              value={newEventData.po_tag_code}
+              onChange={(e) => setNewEventData({ ...newEventData, po_tag_code: e.target.value })}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="PO1">PO1: Engineering Knowledge</option>
+              <option value="PO2">PO2: Problem Analysis</option>
+              <option value="PO3">PO3: Design/Development of Solutions</option>
+              <option value="PO4">PO4: Investigation</option>
+              <option value="PO5">PO5: Modern Tool Usage (Recommended)</option>
+              <option value="PO6">PO6: Engineer & Society</option>
+              <option value="PO7">PO7: Sustainability</option>
+              <option value="PO8">PO8: Ethics</option>
+              <option value="PO9">PO9: Individual & Team Work</option>
+              <option value="PO10">PO10: Communication</option>
+              <option value="PO11">PO11: Project Management & Finance</option>
+              <option value="PO12">PO12: Life-Long Learning</option>
+            </select>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
@@ -621,7 +724,7 @@ export const ExecutiveDashboard: React.FC = () => {
                 href={`/api/v1/events/${selectedRosterEvent.id}/roster?format=csv`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5"
+                className={buttonClasses({ variant: 'secondary', size: 'sm' })}
               >
                 <Download className="w-3.5 h-3.5" /> Export CSV
               </a>
@@ -636,7 +739,7 @@ export const ExecutiveDashboard: React.FC = () => {
                 placeholder="Student ID (e.g. 0432320005101007)"
                 value={manualStudentId}
                 onChange={(e) => setManualStudentId(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-800 focus:outline-none"
+                className="flex-1 h-9 px-3.5 bg-white border border-slate-300 rounded-full font-mono text-xs focus:ring-2 focus:ring-blue-800 focus:outline-none"
               />
               <Button
                 type="submit"
@@ -658,7 +761,7 @@ export const ExecutiveDashboard: React.FC = () => {
               <table aria-label="Attendee Check-In Roster Table" className="w-full text-left border-collapse text-xs">
                 <caption className="sr-only">Attendee Check-In Roster</caption>
                 <thead>
-                  <tr className="bg-slate-100 border-b border-slate-200 text-black font-bold uppercase sticky top-0 text-[10px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 text-[11px]">
                     <th className="py-2.5 px-3">Ticket</th>
                     <th className="py-2.5 px-3">Student Name</th>
                     <th className="py-2.5 px-3">Student ID</th>
@@ -697,7 +800,7 @@ export const ExecutiveDashboard: React.FC = () => {
                             {r.registration_status}
                           </Badge>
                         </td>
-                        <td className="py-2.5 px-3 text-[11px]">
+                        <td className="py-2.5 px-3 text-xs">
                           {r.registration_status === 'CONFIRMED' ? (
                             <Button
                               variant="success"

@@ -29,22 +29,29 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       className={cn(
-        'bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center justify-between gap-4 transition-all hover:shadow-md hover:border-slate-300',
+        'bg-white rounded-2xl border border-slate-200 p-5 shadow-card flex items-center justify-between gap-4 min-w-0',
         className
       )}
       {...props}
     >
-      <div className="space-y-1">
-        <p className="text-xs font-semibold text-slate-600 tracking-tight">{title}</p>
-        <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">{value}</p>
+      <div className="space-y-1 min-w-0">
+        <p className="text-xs font-semibold text-slate-600 truncate">{title}</p>
+        <p
+          className={cn(
+            'font-display font-bold text-slate-900 tracking-tight tabular-nums break-words',
+            typeof value === 'string' && value.length > 8 ? 'text-lg leading-snug' : 'text-2xl sm:text-3xl'
+          )}
+        >
+          {value}
+        </p>
         {subtitle && (
-          <p className="text-[11px] text-slate-500">{subtitle}</p>
+          <p className="text-xs text-slate-500">{subtitle}</p>
         )}
       </div>
       {icon && (
         <div
           className={cn(
-            'w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-inner',
+            'w-12 h-12 rounded-full border flex items-center justify-center shrink-0',
             iconVariants[variant]
           )}
         >

@@ -51,6 +51,7 @@ export interface EventItem {
   title: string;
   description: string;
   venue: string;
+  venue_id?: string | null;
   start_time: string;
   end_time: string;
   capacity: number;
@@ -61,6 +62,7 @@ export interface EventItem {
   requires_feedback_for_cert: boolean;
   created_by: string;
   waitlist_count?: number;
+  po_tags?: PoTag[];
 }
 
 export interface RegistrationItem {
@@ -99,4 +101,85 @@ export interface NotificationItem {
   link_url?: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  building?: string | null;
+  capacity: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  radius_m?: number | null;
+  is_active: number | boolean;
+}
+
+export interface PoTag {
+  code: string;
+  weight: number;
+  title_en?: string;
+  title_bn?: string;
+}
+
+export interface AttainmentOutcome {
+  code: string;
+  points: number;
+  level: 'NOT_STARTED' | 'DEVELOPING' | 'PROFICIENT' | 'EXEMPLARY';
+  sources?: { events: number; reflections: number; roles: number };
+}
+
+export interface TranscriptActivity {
+  event_id: string;
+  event_title: string;
+  club_id: string;
+  club_name: string;
+  club_role: string;
+  attended_at: string;
+  attended_date: string;
+  certificate_serial: string | null;
+  po_tags: { code: string; weight: number }[];
+  reflection: boolean;
+}
+
+export interface TranscriptSemester {
+  semester_id: string | null;
+  name: string;
+  activities: TranscriptActivity[];
+}
+
+export interface TranscriptData {
+  framework: 'BAETE';
+  generated_at: string;
+  student: {
+    user_id: string;
+    full_name: string;
+    student_id_number: string;
+    department: string;
+    batch_year: number;
+  };
+  semesters: TranscriptSemester[];
+  roles: { club_id: string; club_name: string; club_role: string; joined_at: string | null }[];
+  attainment: {
+    outcomes: AttainmentOutcome[];
+    total_points: number;
+    level_counts: Record<'NOT_STARTED' | 'DEVELOPING' | 'PROFICIENT' | 'EXEMPLARY', number>;
+  };
+}
+
+export interface TranscriptVerification {
+  valid: boolean;
+  signature_valid: boolean | null;
+  transcript: {
+    typ: string;
+    iss: string;
+    tid: string;
+    sub: string;
+    name: string;
+    department: string;
+    framework: string;
+    issued_at: string;
+    activity_count: number;
+    attainment: { code: string; points: number; level: string }[];
+  };
+  jws: string | null;
 }

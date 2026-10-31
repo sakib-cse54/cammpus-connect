@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, Calendar, Award, ShieldCheck, Sparkles, 
-  Layers, Users, CheckCircle2, ArrowRight, Database, Lock, Clock
-} from 'lucide-react';
+import { Search, Calendar, ArrowRight } from 'lucide-react';
 import { api } from '../services/api.js';
 import type { ClubsResponse, EventsResponse } from '../services/responses.js';
 import { EventItem, Club } from '../types.js';
 import { EventCard } from '../components/EventCard.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
-import { Badge } from '../components/ui/Badge.js';
 import { Button } from '../components/ui/Button.js';
 import { getClubLogoUrl } from '../lib/utils.js';
 
@@ -74,140 +70,81 @@ export const Home: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-12 pb-20">
-      {/* Institutional Hero Masthead */}
-      <section className="bg-slate-950 text-white pt-16 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-64 bg-blue-900/10 blur-3xl pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto text-center space-y-6 relative z-10">
-          <div className="flex justify-center items-center gap-3">
-            <img
-              src="/images/campusconnect_logo.jpg"
-              alt="CampusConnect Crest"
-              className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-blue-500/40 object-cover"
-            />
-          </div>
-
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-950 border border-blue-800/80 text-xs font-semibold text-blue-300 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>University Extracurricular Governance Baseline | IEEE Std 830-1998</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
-            CampusConnect Portal
+    <div className="pb-8">
+      <section className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-12 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
+        <div className="space-y-6">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.05] tracking-tight text-slate-900 max-w-xl">
+            What's happening on campus this week
           </h1>
-
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-            Centralized hub for university clubs, faculty-reviewed event governance, strict ACID concurrency seat allocations, dynamic rotating anti-proxy QR attendance, and digitally verified completion certificates.
+          <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-lg">
+            Browse events from every club, reserve your seat in seconds and collect a certificate you can share.
           </p>
 
-          {/* Institutional Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto pt-3 flex gap-2">
+          <form onSubmit={handleSearchSubmit} role="search" className="flex flex-col sm:flex-row gap-2 max-w-lg">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
               <input
-                type="text"
-                aria-label="Search events by title, keyword, or venue"
+                type="search"
+                aria-label="Search events"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search events by title, keyword, or venue..."
-                className="w-full pl-10 pr-4 py-3 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg placeholder:text-slate-400 font-medium"
+                placeholder="Search by title, keyword or venue"
+                className="w-full h-12 pl-11 pr-4 bg-white border border-slate-300 rounded-full text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition"
               />
             </div>
-            <Button
-              type="submit"
-              size="md"
-              className="px-6 py-3 rounded-xl shadow-lg"
-            >
-              Search
-            </Button>
+            <Button type="submit" size="lg" className="text-sm">Search</Button>
           </form>
 
-          {/* Platform Pillars Pill Row */}
-          <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto text-left">
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
-              <div className="flex items-center gap-1.5 text-blue-400 text-xs font-bold">
-                <Database className="w-3.5 h-3.5" />
-                <span>ACID Concurrency</span>
+          {clubs.length > 0 && (
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex -space-x-2">
+                {clubs.slice(0, 5).map((c) => (
+                  <img
+                    key={c.id}
+                    src={c.logo_url || getClubLogoUrl(c.slug || c.name)}
+                    alt=""
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-50 bg-slate-900"
+                  />
+                ))}
               </div>
-              <p className="text-[11px] text-slate-400">Zero overbooking guarantees</p>
+              <p className="text-sm text-slate-600">
+                <strong className="font-semibold text-slate-900">{clubs.length} clubs</strong> hosting events
+              </p>
             </div>
+          )}
+        </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
-              <div className="flex items-center gap-1.5 text-blue-400 text-xs font-bold">
-                <Lock className="w-3.5 h-3.5" />
-                <span>Anti-Proxy QR</span>
-              </div>
-              <p className="text-[11px] text-slate-400">20-second dynamic rotation</p>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
-              <div className="flex items-center gap-1.5 text-blue-400 text-xs font-bold">
-                <Award className="w-3.5 h-3.5" />
-                <span>SHA-256 Ledger</span>
-              </div>
-              <p className="text-[11px] text-slate-400">Cryptographically verifiable</p>
-            </div>
-
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
-              <div className="flex items-center gap-1.5 text-blue-400 text-xs font-bold">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Faculty Review</span>
-              </div>
-              <p className="text-[11px] text-slate-400">Appointed advisor audit</p>
-            </div>
-          </div>
-
-          {/* Panoramic Campus Hero Visual Showcase */}
-          <div className="pt-6 max-w-4xl mx-auto">
-            <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl group bg-slate-900">
-              <img
-                src="/images/hero_campus_life.jpg"
-                alt="Modern University Campus Life and Student Collaboration"
-                className="w-full h-56 sm:h-80 object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90" />
-              <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-left">
-                <div>
-                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-blue-600/90 text-white font-bold text-[10px] tracking-wider uppercase mb-1.5 shadow-sm">
-                    Collegiate Ecosystem
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white leading-tight">
-                    Empowering Student Leadership & Extracurricular Excellence
-                  </h3>
-                  <p className="text-xs text-slate-300 hidden sm:block mt-1">
-                    Connect with student organizations, technical hackathons, cultural fests, and verified workshops.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700/80 text-xs font-semibold text-slate-200">
-                    <span className="font-bold text-blue-400">100%</span> Verified Seats
-                  </div>
-                </div>
-              </div>
+        <div className="relative">
+          <img
+            src="/images/hero_campus_life.jpg"
+            alt="Students gathered on the university campus"
+            className="w-full aspect-[4/3] lg:aspect-[5/4] object-cover rounded-[2rem]"
+          />
+          <div className="absolute -bottom-5 left-5 sm:left-8 bg-white rounded-2xl shadow-elevation px-5 py-4 flex items-center gap-3">
+            <span className="w-10 h-10 rounded-xl bg-marigold-100 text-marigold-700 flex items-center justify-center">
+              <Calendar className="w-5 h-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="font-display text-xl font-bold text-slate-900 leading-none tabular-nums">{events.length}</p>
+              <p className="text-xs text-slate-500 mt-1">upcoming events</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Catalog Section */}
-      <section aria-labelledby="events-catalog-heading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <h2 id="events-catalog-heading" className="sr-only">Scheduled University Events Catalog</h2>
-
-        {/* Category Filter Pills and Counts */}
-        <div className="flex items-center justify-between flex-wrap gap-4 pb-3 border-b border-slate-200">
-          <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+      <section aria-labelledby="events-heading" className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <h2 id="events-heading" className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Upcoming events</h2>
+          <div className="flex items-center gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
             {categories.map((cat) => {
               const isActive = (cat === 'All' && !selectedCategory) || selectedCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat === 'All' ? '' : cat)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    isActive
-                      ? 'bg-blue-900 text-white shadow-sm'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  aria-pressed={isActive}
+                  className={`h-9 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    isActive ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900'
                   }`}
                 >
                   {cat}
@@ -215,91 +152,65 @@ export const Home: React.FC = () => {
               );
             })}
           </div>
-
-          <div className="text-xs font-semibold text-slate-500">
-            Showing <strong className="text-slate-900 font-mono">{events.length}</strong> active campus events
-          </div>
         </div>
 
-        {/* Events Grid */}
         {loading ? (
-          <div className="py-24 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mx-auto mb-3"></div>
-            <p className="text-xs font-semibold text-slate-500">Loading scheduled university events...</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[26rem] rounded-2xl bg-slate-200/60 animate-pulse" />
+            ))}
           </div>
         ) : events.length === 0 ? (
           <EmptyState
             icon={<Calendar className="w-7 h-7" />}
-            title="No events found matching your criteria"
-            description="Try adjusting your search terms or selecting another category filter above."
-            actionLabel="Reset Filters"
+            title="No events match your search"
+            description="Try a different keyword or category."
+            actionLabel="Clear filters"
             onAction={handleResetFilters}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((ev) => (
               <EventCard key={ev.id} event={ev} />
             ))}
           </div>
         )}
+      </section>
 
-        {/* Campus Clubs Spotlight */}
-        <section className="pt-14 border-t border-slate-200 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">Chartered Student Organizations</h2>
-              <p className="text-xs text-slate-500">Explore official university societies governed under appointed academic advisors</p>
-            </div>
-            <Link
-              to="/clubs"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-900 hover:text-blue-700"
-            >
-              <span>Explore All Clubs</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+      {clubs.length > 0 && (
+        <section aria-labelledby="clubs-heading" className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 pt-16 space-y-6">
+          <div className="flex items-end justify-between gap-4">
+            <h2 id="clubs-heading" className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Clubs</h2>
+            <Link to="/clubs" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-900 hover:text-blue-700 transition-colors">
+              See all clubs
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {clubs.map((c) => (
-              <div
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {clubs.slice(0, 6).map((c) => (
+              <Link
                 key={c.id}
-                className="bg-white rounded-xl border border-slate-200 p-5 shadow-subtle hover:shadow-card hover:border-slate-300 transition-all flex flex-col justify-between space-y-4"
+                to="/clubs"
+                className="group flex gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-blue-200 hover:shadow-elevation transition"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={c.logo_url || getClubLogoUrl(c.slug || c.name)}
-                      alt={c.name}
-                      className="w-11 h-11 rounded-xl object-cover shadow-sm ring-1 ring-slate-200 shrink-0 bg-slate-900"
-                    />
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{c.name}</h3>
-                      <Badge color="primary" size="sm">
-                        {c.category}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                    {c.description}
+                <img
+                  src={c.logo_url || getClubLogoUrl(c.slug || c.name)}
+                  alt=""
+                  className="w-12 h-12 rounded-xl object-cover shrink-0 bg-slate-900"
+                />
+                <div className="min-w-0 space-y-1">
+                  <h3 className="text-base font-semibold text-slate-900 truncate group-hover:text-blue-900 transition-colors">{c.name}</h3>
+                  <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{c.description}</p>
+                  <p className="text-xs text-slate-500 pt-1">
+                    {c.member_count || 0} members | {c.active_event_count || 0} events
                   </p>
-
-                  <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-100 space-y-1">
-                    <p>
-                      <strong className="text-slate-700">Faculty Advisor:</strong> {c.advisor_name || c.advisor_email || 'Assigned Faculty'}
-                    </p>
-                  </div>
                 </div>
-
-                <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-500">
-                  <span className="font-semibold text-slate-700">{c.member_count || 0} Members</span>
-                  <span>{c.active_event_count || 0} Active Events</span>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
-      </section>
+      )}
     </div>
   );
 };

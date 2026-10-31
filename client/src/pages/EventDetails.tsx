@@ -11,7 +11,8 @@ import { useAuth } from '../context/AuthContext.js';
 import { EventItem, RegistrationItem } from '../types.js';
 import { DynamicQrModal } from '../components/DynamicQrModal.js';
 import { Badge } from '../components/ui/Badge.js';
-import { Button } from '../components/ui/Button.js';
+import { checkInPayload } from '../lib/checkIn.js';
+import { Button, buttonClasses } from '../components/ui/Button.js';
 import { Alert } from '../components/ui/Alert.js';
 import { Modal } from '../components/ui/Modal.js';
 import { useToast } from '../components/ui/Toast.js';
@@ -130,9 +131,7 @@ export const EventDetails: React.FC = () => {
     try {
       setActionLoading(true);
       setCheckInMsg(null);
-      const res = await api.post<MessageResponse>(`/events/${event.id}/attendance/scan`, {
-        token: tokenInput.trim()
-      });
+      const res = await api.post<MessageResponse>(`/events/${event.id}/attendance/scan`, checkInPayload(tokenInput));
       setCheckInMsg({ type: 'success', text: res.message || 'Attendance verified successfully!' });
       toast.success('Attendance confirmed via rotating QR token.');
       setTokenInput('');
@@ -166,7 +165,8 @@ export const EventDetails: React.FC = () => {
           toast.success(`Digital Certificate ${certRes.certificate.serial_number} issued!`);
         }
       } catch (issueErr: any) {
-        console.info('Certificate issuance note:', issueErr.message);
+        // Ineligible attendees get a 4xx with a reason; show it instead of hiding it.
+        toast.info?.(issueErr.message || 'Certificate not issued yet.') ?? toast.error(issueErr.message || 'Certificate not issued yet.');
       }
 
       await fetchEventData();
@@ -281,7 +281,7 @@ export const EventDetails: React.FC = () => {
             </div>
 
             <div className="p-6 sm:p-8 space-y-6">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight tracking-tight">
               {event.title}
             </h1>
 
@@ -340,7 +340,7 @@ export const EventDetails: React.FC = () => {
 
             {/* Description */}
             <div className="space-y-2">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Event Overview</h2>
+              <h2 className="text-sm font-bold text-slate-900r">Event Overview</h2>
               <div className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
                 {event.description}
               </div>
@@ -348,7 +348,7 @@ export const EventDetails: React.FC = () => {
 
             {event.advisor_remarks && (
               <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-1">
-                <p className="font-bold text-blue-950 uppercase tracking-wider text-[11px]">
+                <p className="font-bold text-blue-950r text-xs">
                   Faculty Advisor Governance Note
                 </p>
                 <p className="text-blue-900 italic leading-relaxed">{event.advisor_remarks}</p>
@@ -383,7 +383,7 @@ export const EventDetails: React.FC = () => {
                       className="w-14 h-14 rounded-xl object-cover shadow-sm ring-1 ring-emerald-300 shrink-0"
                     />
                     <div className="space-y-0.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">Authentic Credential Issued</p>
+                      <p className="text-[11px] font-boldr text-emerald-900">Authentic Credential Issued</p>
                       <p className="text-sm font-mono font-bold text-slate-900">Serial: {certificateSerial}</p>
                       <p className="text-xs text-emerald-700">SHA-256 Digitally Signed PDF</p>
                     </div>
@@ -393,14 +393,14 @@ export const EventDetails: React.FC = () => {
                       href={`/api/v1/certificates/download/${certificateSerial}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shadow-sm"
+                      className={buttonClasses({ variant: 'success', size: 'sm' })}
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download PDF</span>
                     </a>
                     <Link
                       to={`/verify/${certificateSerial}`}
-                      className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shadow-sm"
+                      className={buttonClasses({ variant: 'outline', size: 'sm' })}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Verify Online</span>
@@ -410,7 +410,7 @@ export const EventDetails: React.FC = () => {
               ) : !feedbackSubmitted ? (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-4 pt-2">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-bold text-slate-700r mb-2">
                       Session Evaluation Rating (1 to 5 Stars)
                     </label>
                     <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export const EventDetails: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700r mb-1.5">
                       Constructive Session Feedback
                     </label>
                     <textarea
@@ -486,7 +486,7 @@ export const EventDetails: React.FC = () => {
                 />
               </div>
               {isFull && (
-                <p className="text-[11px] text-amber-800 font-medium">
+                <p className="text-xs text-amber-800 font-medium">
                   Event is at capacity. Registrations are automatically assigned to the FIFO waitlist.
                 </p>
               )}
@@ -496,7 +496,7 @@ export const EventDetails: React.FC = () => {
             {userRegistration ? (
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Your Reservation</span>
+                  <span className="text-[11px] font-bold text-slate-500r">Your Reservation</span>
                   <Badge
                     color={
                       userRegistration.status === 'CONFIRMED' ? 'success' :
@@ -510,7 +510,7 @@ export const EventDetails: React.FC = () => {
                 </div>
 
                 <div className="bg-white p-3 rounded-lg border border-slate-200 font-mono text-center shadow-subtle">
-                  <p className="text-[10px] text-slate-400 font-sans uppercase font-bold">Pass Identification Code</p>
+                  <p className="text-[11px] text-slate-400 font-sans font-bold">Pass Identification Code</p>
                   <p className="text-base font-bold text-slate-900">{userRegistration.ticket_code}</p>
                 </div>
 
@@ -527,14 +527,14 @@ export const EventDetails: React.FC = () => {
                       <p className="font-bold flex items-center gap-1.5">
                         <UserCheck className="w-4 h-4 text-blue-800" /> Confirmed Seat Reserved
                       </p>
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                      <p className="text-xs text-slate-600 leading-relaxed">
                         Scan the host's rotating dynamic QR display at the venue entrance to check in.
                       </p>
                     </div>
 
                     {/* Quick Token Check-in Box for Student */}
                     <form onSubmit={handleScanToken} className="space-y-2 pt-2 border-t border-slate-200">
-                      <label className="block text-[11px] font-bold text-slate-700">
+                      <label className="block text-xs font-bold text-slate-700">
                         Check-in via Dynamic Display Token
                       </label>
                       <div className="flex gap-2">
@@ -544,7 +544,7 @@ export const EventDetails: React.FC = () => {
                           value={tokenInput}
                           onChange={(e) => setTokenInput(e.target.value)}
                           placeholder="e.g. 7f8a3c9b..."
-                          className="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-800 focus:outline-none"
+                          className="flex-1 h-9 px-3.5 rounded-full border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-800 focus:outline-none"
                         />
                         <Button
                           type="submit"
@@ -569,7 +569,7 @@ export const EventDetails: React.FC = () => {
                     <p className="font-bold flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-700" /> Attendance Verified
                     </p>
-                    <p className="text-[11px] text-emerald-800">
+                    <p className="text-xs text-emerald-800">
                       Check-in recorded at {userRegistration.check_in_time ? new Date(userRegistration.check_in_time).toLocaleTimeString() : 'Session'}.
                     </p>
                   </div>
@@ -577,9 +577,9 @@ export const EventDetails: React.FC = () => {
 
                 {userRegistration.status !== 'ATTENDED' && (
                   <Button
-                    variant="outline"
+                    variant="danger-outline"
                     size="sm"
-                    className="w-full text-rose-700 hover:text-rose-800 hover:bg-rose-50 border-rose-200"
+                    fullWidth
                     isLoading={actionLoading}
                     onClick={() => setShowCancelModal(true)}
                   >
@@ -592,7 +592,7 @@ export const EventDetails: React.FC = () => {
                 <Button
                   variant={isFull ? 'secondary' : 'primary'}
                   size="md"
-                  className="w-full py-3 rounded-xl shadow-md"
+                  fullWidth
                   isLoading={actionLoading}
                   disabled={isPast || event.status !== 'PUBLISHED'}
                   onClick={handleRegister}
@@ -600,8 +600,8 @@ export const EventDetails: React.FC = () => {
                 >
                   {isPast ? 'Event Concluded' : isFull ? 'Join Concurrency Waitlist' : 'Register Instant Seat'}
                 </Button>
-                <p className="text-[11px] text-center text-slate-500">
-                  Strict ACID concurrency locks prevent overbooking.
+                <p className="text-xs text-center text-slate-500">
+                  Seats are confirmed the moment you reserve.
                 </p>
               </div>
             )}
@@ -609,12 +609,12 @@ export const EventDetails: React.FC = () => {
 
           {/* Host Operations Station (Executive / Admin Only) */}
           {isExecutive && (
-            <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-elevation space-y-4 border border-slate-800">
+            <div className="bg-white rounded-2xl p-6 space-y-4 border border-slate-200">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-blue-400" />
-                <h3 className="text-sm font-bold tracking-tight text-white">Organizer Operations</h3>
+                <ShieldCheck className="w-5 h-5 text-blue-700" />
+                <h3 className="text-base font-semibold text-slate-900">Organizer tools</h3>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Tools for club executives and faculty advisors to manage event operations.
               </p>
 
@@ -622,19 +622,19 @@ export const EventDetails: React.FC = () => {
                 <Button
                   variant="primary"
                   size="sm"
-                  className="w-full py-2.5 rounded-xl shadow"
+                  fullWidth
                   onClick={() => setShowQrModal(true)}
                   leftIcon={<QrCode className="w-4 h-4" />}
                 >
-                  Launch Dynamic Rotating QR
+                  Show check-in QR
                 </Button>
 
                 <Link
                   to={`/executive?eventId=${event.id}`}
-                  className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-700"
+                  className={buttonClasses({ variant: 'outline', size: 'sm', fullWidth: true })}
                 >
                   <FileText className="w-4 h-4" />
-                  <span>View Attendee Roster</span>
+                  <span>View attendee roster</span>
                 </Link>
               </div>
             </div>

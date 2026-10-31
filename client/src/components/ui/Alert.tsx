@@ -48,7 +48,7 @@ export const Alert: React.FC<AlertProps> = ({
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-slate-400 hover:text-slate-700 p-1 -mr-1 -mt-1 rounded-md"
+          className="w-8 h-8 -mr-1.5 -mt-1.5 shrink-0 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           aria-label="Dismiss alert"
         >
           <X className="w-4 h-4" />

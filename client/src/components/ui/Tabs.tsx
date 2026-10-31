@@ -80,7 +80,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, className
             {tab.icon && <span aria-hidden="true" className="w-4 h-4 shrink-0">{tab.icon}</span>}
             <span>{tab.label}</span>
             {typeof tab.count === 'number' && (
-              <span className={cn('px-1.5 rounded-full text-[10px] font-mono font-bold', isActive ? 'bg-blue-50 text-blue-900' : 'bg-slate-200 text-slate-600')}>
+              <span className={cn('px-1.5 rounded-full text-[11px] font-mono font-bold', isActive ? 'bg-blue-50 text-blue-900' : 'bg-slate-200 text-slate-600')}>
                 {tab.count}
               </span>
             )}

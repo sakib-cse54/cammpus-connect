@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { ShieldCheck, LogIn, Mail, Lock, AlertCircle, ArrowRight, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.js';
 import { Input } from '../components/ui/Input.js';
@@ -10,6 +10,8 @@ import { Badge } from '../components/ui/Badge.js';
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +29,8 @@ export const Login: React.FC = () => {
       setSubmitting(true);
       setError(null);
       await login(email, password);
-      navigate('/');
+      const destination = (location.state as any)?.from || searchParams.get('returnUrl') || '/';
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -52,21 +55,21 @@ export const Login: React.FC = () => {
               className="w-16 h-16 rounded-2xl shadow-md ring-2 ring-blue-900/10 object-cover"
             />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Sign In to CampusConnect</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sign in</h1>
           <p className="text-xs text-slate-500">
-            University Single Sign-On and RBAC Authentication
+            Use your university email to continue.
           </p>
         </div>
 
         {error && (
-          <Alert variant="error" title="Authentication Error">
+          <Alert variant="error" title="Could not sign in">
             {error}
           </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Institutional Email"
+            label="University email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +79,7 @@ export const Login: React.FC = () => {
           />
 
           <Input
-            label="Account Password"
+            label="Password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -90,11 +93,11 @@ export const Login: React.FC = () => {
               type="submit"
               variant="primary"
               size="md"
-              className="w-full py-2.5 rounded-xl shadow-md"
+              fullWidth
               isLoading={submitting}
               leftIcon={<LogIn className="w-4 h-4" />}
             >
-              Sign In to Account
+              Sign in
             </Button>
           </div>
         </form>
@@ -102,8 +105,8 @@ export const Login: React.FC = () => {
         {/* Quick Fill Demo Credentials Box */}
         <div className="pt-5 border-t border-slate-100 space-y-2.5">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Quick Fill Demo Accounts
+            <p className="text-xs font-bold text-slate-500r">
+              Demo accounts
             </p>
             <Badge color="primary" size="sm">
               Seeded Credentials
@@ -118,7 +121,7 @@ export const Login: React.FC = () => {
             >
               <div>
                 <p className="font-bold text-slate-900 group-hover:text-blue-900">Md. Shakhawat Hossain (Team Leader)</p>
-                <p className="text-slate-500 text-[11px]">ID: 0432320005101009 | shakhawat@university.edu</p>
+                <p className="text-slate-500 text-xs">ID: 0432320005101009 | shakhawat@university.edu</p>
               </div>
               <UserCheck className="w-4 h-4 text-slate-400 group-hover:text-blue-800 shrink-0" />
             </button>
@@ -130,7 +133,7 @@ export const Login: React.FC = () => {
             >
               <div>
                 <p className="font-bold text-slate-900 group-hover:text-blue-900">Fahim Hossain (Team Member / Executive)</p>
-                <p className="text-slate-500 text-[11px]">ID: 0432320005101007 | fahim@university.edu</p>
+                <p className="text-slate-500 text-xs">ID: 0432320005101007 | fahim@university.edu</p>
               </div>
               <UserCheck className="w-4 h-4 text-slate-400 group-hover:text-blue-800 shrink-0" />
             </button>
@@ -142,7 +145,7 @@ export const Login: React.FC = () => {
             >
               <div>
                 <p className="font-bold text-slate-900 group-hover:text-blue-900">Al Imtiaz (Course Teacher & Supervisor)</p>
-                <p className="text-slate-500 text-[11px]">imtiaz@university.edu</p>
+                <p className="text-slate-500 text-xs">imtiaz@university.edu</p>
               </div>
               <UserCheck className="w-4 h-4 text-slate-400 group-hover:text-blue-800 shrink-0" />
             </button>
@@ -154,7 +157,7 @@ export const Login: React.FC = () => {
             >
               <div>
                 <p className="font-bold text-slate-900 group-hover:text-blue-900">Platform Administrator (Central IT)</p>
-                <p className="text-slate-500 text-[11px]">admin@university.edu</p>
+                <p className="text-slate-500 text-xs">admin@university.edu</p>
               </div>
               <UserCheck className="w-4 h-4 text-slate-400 group-hover:text-blue-800 shrink-0" />
             </button>

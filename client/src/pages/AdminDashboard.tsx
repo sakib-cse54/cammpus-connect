@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Users, Calendar, Award, Database, 
   Activity, Plus, CheckCircle2, RefreshCw, AlertCircle, 
-  UserCheck, Layers, FileText, Lock
+  UserCheck, Layers, FileText, Lock, Download, BarChart3
 } from 'lucide-react';
 import { api } from '../services/api.js';
 import type { AdminAnalyticsResponse, UsersResponse } from '../services/responses.js';
@@ -27,6 +27,7 @@ export const AdminDashboard: React.FC = () => {
   const [advisors, setAdvisors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Club Provisioning Modal
@@ -105,6 +106,26 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleExportPoReport = async () => {
+    try {
+      setDownloadingReport(true);
+      const blob = await api.blob('/reports/po-attainment?format=csv');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `po-attainment-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('OBE Attainment CSV downloaded');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download attainment report');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
   const clubCategories = [
     { value: 'Technology & Engineering', label: 'Technology & Engineering' },
     { value: 'Arts & Culture', label: 'Arts & Culture' },
@@ -114,20 +135,29 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
+    <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
       {/* Platform Banner */}
-      <div className="bg-slate-950 text-white rounded-2xl p-6 sm:p-8 shadow-elevation border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-blue-900 text-white rounded-2xl p-6 sm:p-8 border border-blue-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-blue-400" />
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Institutional System Administration</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Institutional System Administration</h1>
           </div>
           <p className="text-xs text-slate-400">
-            CampusConnect Central IT Console | RBAC Governance, Provisioning & Audit Log | Administrator: {user?.email}
+            Manage users, roles and the audit log. Signed in as {user?.email}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportPoReport}
+            isLoading={downloadingReport}
+            leftIcon={<Download className="w-3.5 h-3.5" />}
+          >
+            Export OBE CSV
+          </Button>
           <Button
             variant="primary"
             size="sm"
@@ -188,7 +218,7 @@ export const AdminDashboard: React.FC = () => {
           <StatCard
             title="Certificates"
             value={metrics.certificates || 0}
-            subtitle="SHA-256 Signed"
+            subtitle="Digitally signed"
             icon={<Award className="w-5 h-5 text-amber-700" />}
             variant="warning"
           />
@@ -211,7 +241,7 @@ export const AdminDashboard: React.FC = () => {
           <table aria-label="User Identity and RBAC Directory Table" className="w-full text-left border-collapse text-xs">
             <caption className="sr-only">User Identity and RBAC Directory</caption>
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-black font-bold uppercase text-[11px]">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
                 <th className="py-2.5 px-3.5">Full Legal Name</th>
                 <th className="py-2.5 px-3.5">Student ID</th>
                 <th className="py-2.5 px-3.5">Email Address</th>
@@ -274,7 +304,7 @@ export const AdminDashboard: React.FC = () => {
           <table aria-label="Immutable Security Audit Trail Table" className="w-full text-left border-collapse text-xs">
             <caption className="sr-only">Immutable Security Audit Trail</caption>
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-black font-bold uppercase text-[11px]">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
                 <th className="py-2.5 px-3.5">Timestamp</th>
                 <th className="py-2.5 px-3.5">Action Type</th>
                 <th className="py-2.5 px-3.5">Actor Identity</th>
@@ -285,13 +315,13 @@ export const AdminDashboard: React.FC = () => {
             <tbody className="divide-y divide-slate-100 font-mono text-slate-700">
               {auditLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/70 transition">
-                  <td className="py-2 px-3.5 text-[11px] text-slate-500 whitespace-nowrap">
+                  <td className="py-2 px-3.5 text-xs text-slate-500 whitespace-nowrap">
                     {formatDateTime(log.timestamp)}
                   </td>
                   <td className="py-2 px-3.5 font-bold text-slate-900 font-sans">{log.action}</td>
                   <td className="py-2 px-3.5 text-blue-900">{log.actor_email || log.actor_id || 'System'}</td>
                   <td className="py-2 px-3.5">{log.entity_type}:{log.entity_id ? log.entity_id.substring(0, 8) : '-'}</td>
-                  <td className="py-2 px-3.5 text-[11px] text-slate-400">{log.ip_address || '127.0.0.1'}</td>
+                  <td className="py-2 px-3.5 text-xs text-slate-400">{log.ip_address || '127.0.0.1'}</td>
                 </tr>
               ))}
             </tbody>

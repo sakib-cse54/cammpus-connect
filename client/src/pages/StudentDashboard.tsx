@@ -3,14 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Ticket, Award, Bell, CheckCircle2, Clock, Calendar, 
   MapPin, AlertCircle, Download, ExternalLink, Hash, 
-  GraduationCap, RefreshCw, XCircle, Star, Send, ArrowRight, User
+  GraduationCap, RefreshCw, XCircle, Star, Send, ArrowRight, User,
+  FileCheck, BookOpen, PenLine
 } from 'lucide-react';
 import { api } from '../services/api.js';
-import type { CertificatesResponse, NotificationsResponse, RegistrationsResponse } from '../services/responses.js';
+import type { CertificatesResponse, NotificationsResponse, RegistrationsResponse, TranscriptResponse } from '../services/responses.js';
 import { useAuth } from '../context/AuthContext.js';
-import { RegistrationItem, CertificateItem, NotificationItem } from '../types.js';
+import { RegistrationItem, CertificateItem, NotificationItem, TranscriptData } from '../types.js';
 import { Badge } from '../components/ui/Badge.js';
-import { Button } from '../components/ui/Button.js';
+import { checkInPayload } from '../lib/checkIn.js';
+import { Button, buttonClasses } from '../components/ui/Button.js';
 import { StatCard } from '../components/ui/StatCard.js';
 import { Tabs } from '../components/ui/Tabs.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
@@ -18,6 +20,21 @@ import { Alert } from '../components/ui/Alert.js';
 import { Modal } from '../components/ui/Modal.js';
 import { useToast } from '../components/ui/Toast.js';
 import { formatDate, formatDateTime, formatRelativeTime } from '../lib/utils.js';
+
+const PO_TITLES: Record<string, string> = {
+  PO1: 'Engineering Knowledge',
+  PO2: 'Problem Analysis',
+  PO3: 'Design & Development of Solutions',
+  PO4: 'Investigation',
+  PO5: 'Modern Tool Usage',
+  PO6: 'The Engineer and Society',
+  PO7: 'Environment & Sustainability',
+  PO8: 'Ethics',
+  PO9: 'Individual & Team Work',
+  PO10: 'Communication',
+  PO11: 'Project Management & Finance',
+  PO12: 'Life-Long Learning'
+};
 
 export const StudentDashboard: React.FC = () => {
   const { user, profile } = useAuth();
@@ -28,12 +45,18 @@ export const StudentDashboard: React.FC = () => {
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
   const [certificates, setCertificates] = useState<CertificateItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [transcript, setTranscript] = useState<TranscriptData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Cancellation modal state
   const [cancellingRegId, setCancellingRegId] = useState<string | null>(null);
+
+  // Reflection modal state
+  const [reflectingEvent, setReflectingEvent] = useState<{ id: string; title: string } | null>(null);
+  const [reflectionText, setReflectionText] = useState('');
 
   // Quick check-in state
   const [checkInEventId, setCheckInEventId] = useState<string | null>(null);
@@ -45,15 +68,19 @@ export const StudentDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [regRes, certRes, notifRes] = await Promise.all([
+      const [regRes, certRes, notifRes, transRes] = await Promise.all([
         api.get<RegistrationsResponse>('/registrations/me'),
         api.get<CertificatesResponse>('/certificates/me'),
-        api.get<NotificationsResponse>('/notifications')
+        api.get<NotificationsResponse>('/notifications'),
+        api.get<TranscriptResponse>('/me/transcript').catch(() => ({ transcript: null }))
       ]);
 
       setRegistrations(regRes.registrations || []);
       setCertificates(certRes.certificates || []);
       setNotifications(notifRes.notifications || []);
+      if (transRes?.transcript) {
+        setTranscript(transRes.transcript);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data');
     } finally {
@@ -64,6 +91,63 @@ export const StudentDashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const handleDownloadTranscriptPdf = async () => {
+    try {
+      setDownloadingPdf(true);
+      const blob = await api.blob('/me/transcript.pdf');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transcript-${profile?.student_id_number || 'me'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Official signed transcript downloaded successfully.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download transcript PDF');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleOpenReflection = (event: { id: string; title: string }) => {
+    setReflectingEvent(event);
+    setReflectionText('');
+  };
+
+  const handleSubmitReflection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reflectingEvent || reflectionText.trim().length < 20) {
+      toast.warning('Reflection must contain at least 20 characters.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await api.post(`/events/${reflectingEvent.id}/reflection`, {
+        text: reflectionText.trim()
+      });
+      toast.success('Reflection submitted! Bonus co-curricular points awarded.');
+      setReflectingEvent(null);
+      setReflectionText('');
+      await fetchDashboardData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit reflection');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const getLevelBadgeColor = (level: string): 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' => {
+    switch (level) {
+      case 'EXEMPLARY': return 'success';
+      case 'PROFICIENT': return 'primary';
+      case 'DEVELOPING': return 'warning';
+      default: return 'neutral';
+    }
+  };
 
   const executeCancelRegistration = async () => {
     if (!cancellingRegId) return;
@@ -85,9 +169,7 @@ export const StudentDashboard: React.FC = () => {
     try {
       setActionLoading(true);
       setCheckInStatus(null);
-      await api.post(`/events/${eventId}/attendance/scan`, {
-        token: checkInToken.trim()
-      });
+      await api.post(`/events/${eventId}/attendance/scan`, checkInPayload(checkInToken));
       toast.success('Attendance confirmed via dynamic token!');
       setCheckInToken('');
       setCheckInEventId(null);
@@ -116,7 +198,8 @@ export const StudentDashboard: React.FC = () => {
   const dashboardTabs = [
     { id: 'tickets', label: 'My Event Passes', count: registrations.length, icon: <Ticket className="w-4 h-4" /> },
     { id: 'certificates', label: 'Verified Certificates', count: certificates.length, icon: <Award className="w-4 h-4" /> },
-    { id: 'notifications', label: 'System Notices', count: unreadNotifs, icon: <Bell className="w-4 h-4" /> }
+    { id: 'transcript', label: 'Co-Curricular Transcript (OBE)', icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'notifications', label: 'Notifications', count: unreadNotifs, icon: <Bell className="w-4 h-4" /> }
   ];
 
   return (
@@ -124,12 +207,12 @@ export const StudentDashboard: React.FC = () => {
       {/* Student Profile Header Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-subtle flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-blue-900 text-white font-black text-2xl flex items-center justify-center shadow-inner border border-blue-800">
+          <div className="w-16 h-16 rounded-2xl bg-blue-900 text-white font-bold text-2xl flex items-center justify-center shadow-inner border border-blue-800">
             {profile?.full_name ? profile.full_name.charAt(0) : (user?.fullName?.charAt(0) || 'S')}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                 {profile?.full_name || user?.fullName || 'Student Portal'}
               </h1>
               <Badge color="primary" size="sm">
@@ -158,7 +241,7 @@ export const StudentDashboard: React.FC = () => {
           isLoading={loading}
           leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
         >
-          Refresh Portal
+          Refresh
         </Button>
       </div>
 
@@ -181,7 +264,7 @@ export const StudentDashboard: React.FC = () => {
         <StatCard
           title="Earned Credentials"
           value={certificates.length}
-          subtitle="Tamper-proof digital certificates"
+          subtitle="Digitally signed certificates"
           icon={<Award className="w-6 h-6 text-indigo-700" />}
           variant="info"
         />
@@ -220,7 +303,7 @@ export const StudentDashboard: React.FC = () => {
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">
+                      <span className="text-xs font-bold text-blue-900">
                         {reg.club_name}
                       </span>
                       <Badge
@@ -256,15 +339,15 @@ export const StudentDashboard: React.FC = () => {
                   {/* Pass identification banner */}
                   <div className="pt-3 border-t border-slate-100 space-y-3">
                     <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-mono text-center">
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Digital Pass ID</p>
-                      <p className="text-sm font-black text-slate-900 tracking-wider">{reg.ticket_code}</p>
+                      <p className="text-[11px] font-bold text-slate-400">Digital Pass ID</p>
+                      <p className="text-sm font-bold text-slate-900 tracking-wider">{reg.ticket_code}</p>
                     </div>
 
                     {reg.status === 'CONFIRMED' && (
                       <div>
                         {checkInEventId === reg.event_id ? (
                           <div className="space-y-2 p-3 bg-blue-50/80 border border-blue-200 rounded-xl">
-                            <label htmlFor={`checkin-token-${reg.id}`} className="block text-[11px] font-bold text-blue-900 uppercase">
+                            <label htmlFor={`checkin-token-${reg.id}`} className="block text-xs font-bold text-blue-900">
                               Enter Rotating Venue Token
                             </label>
                             <div className="flex gap-2">
@@ -275,7 +358,7 @@ export const StudentDashboard: React.FC = () => {
                                 value={checkInToken}
                                 onChange={(e) => setCheckInToken(e.target.value)}
                                 placeholder="Paste display token..."
-                                className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-blue-800 focus:outline-none"
+                                className="flex-1 h-9 px-3.5 bg-white border border-slate-300 rounded-full text-xs font-mono focus:ring-2 focus:ring-blue-800 focus:outline-none"
                               />
                               <Button
                                 size="xs"
@@ -287,7 +370,7 @@ export const StudentDashboard: React.FC = () => {
                               </Button>
                             </div>
                             {checkInStatus && (
-                              <p role="status" aria-live="polite" className="text-[11px] font-bold text-slate-700">{checkInStatus}</p>
+                              <p role="status" aria-live="polite" className="text-xs font-bold text-slate-700">{checkInStatus}</p>
                             )}
                           </div>
                         ) : (
@@ -301,9 +384,9 @@ export const StudentDashboard: React.FC = () => {
                               Check In with Token
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="danger-outline"
                               size="sm"
-                              className="text-rose-700 hover:text-rose-800 hover:bg-rose-50 border-rose-200"
+                              
                               isLoading={actionLoading}
                               onClick={() => setCancellingRegId(reg.id)}
                             >
@@ -367,10 +450,10 @@ export const StudentDashboard: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-wide text-blue-900">
+                      <span className="text-xs font-bold text-blue-900">
                         {cert.club_name}
                       </span>
-                      <h2 className="text-base font-black text-slate-900 mt-0.5 leading-snug">
+                      <h2 className="text-base font-bold text-slate-900 mt-0.5 leading-snug">
                         {cert.event_title}
                       </h2>
                       <p className="text-xs text-slate-500 mt-1">
@@ -383,9 +466,9 @@ export const StudentDashboard: React.FC = () => {
                   </div>
 
                   <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1 font-mono text-xs">
-                    <p className="text-[10px] uppercase font-bold text-slate-400 font-sans">Official Serial Number</p>
-                    <p className="text-xs font-black text-slate-900">{cert.serial_number}</p>
-                    <p className="text-[10px] text-slate-500 truncate pt-1">
+                    <p className="text-[11px] font-bold text-slate-400 font-sans">Official Serial Number</p>
+                    <p className="text-xs font-bold text-slate-900">{cert.serial_number}</p>
+                    <p className="text-[11px] text-slate-500 truncate pt-1">
                       SHA-256: {cert.sha256_hash}
                     </p>
                   </div>
@@ -395,14 +478,14 @@ export const StudentDashboard: React.FC = () => {
                       href={`/api/v1/certificates/download/${cert.serial_number}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 py-2 px-3 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition inline-flex items-center justify-center gap-1.5 shadow-sm"
+                      className={buttonClasses({ variant: 'primary', size: 'sm', className: 'flex-1' })}
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download PDF</span>
                     </a>
                     <Link
                       to={`/verify/${cert.serial_number}`}
-                      className="py-2 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shadow-sm"
+                      className={buttonClasses({ variant: 'outline', size: 'sm' })}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Verify Online</span>
@@ -438,7 +521,7 @@ export const StudentDashboard: React.FC = () => {
                     )}
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">{notif.message}</p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-slate-400">
                     {formatRelativeTime(notif.created_at)}
                   </p>
                 </div>
@@ -456,6 +539,218 @@ export const StudentDashboard: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Tab 4: Co-Curricular Transcript (OBE) */}
+      {activeTab === 'transcript' && (
+        <div className="space-y-6">
+          {!transcript ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500 text-xs">
+              Loading co-curricular transcript records...
+            </div>
+          ) : (
+            <>
+              {/* Transcript Overview & Action Header */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-subtle flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-6 h-6 text-blue-900" />
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                      BAETE Co-Curricular Transcript
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
+                    Institutional Outcome-Based Education transcript mapping university club activities, attendance, leadership roles, and written reflections directly to BAETE Program Outcomes (PO1 to PO12).
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Badge color="success" size="sm">
+                      Exemplary: {transcript.attainment.level_counts.EXEMPLARY}
+                    </Badge>
+                    <Badge color="primary" size="sm">
+                      Proficient: {transcript.attainment.level_counts.PROFICIENT}
+                    </Badge>
+                    <Badge color="warning" size="sm">
+                      Developing: {transcript.attainment.level_counts.DEVELOPING}
+                    </Badge>
+                    <Badge color="neutral" size="sm">
+                      Total Points: {transcript.attainment.total_points.toFixed(1)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    isLoading={downloadingPdf}
+                    onClick={handleDownloadTranscriptPdf}
+                    leftIcon={<Download className="w-4 h-4" />}
+                  >
+                    Download Signed PDF
+                  </Button>
+                  <Link
+                    to="/transcripts/verify"
+                    className={buttonClasses({ variant: 'outline', size: 'sm', className: 'text-xs' })}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Verify Portal
+                  </Link>
+                </div>
+              </div>
+
+              {/* 12 Program Outcomes Breakdown */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900">Program Outcomes (PO1 to PO12) Attainment Matrix</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {transcript.attainment.outcomes.map((po) => (
+                    <div
+                      key={po.code}
+                      className="p-4 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-subtle hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-xs text-slate-900 block">
+                            {po.code}: {PO_TITLES[po.code] || po.code}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            Score: <strong className="text-slate-800">{po.points.toFixed(1)} pts</strong>
+                          </span>
+                        </div>
+                        <Badge color={getLevelBadgeColor(po.level)} size="sm">
+                          {po.level.replace('_', ' ')}
+                        </Badge>
+                      </div>
+
+                      {po.sources && (
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                          <span>Events: {po.sources.events}</span>
+                          <span>Reflections: {po.sources.reflections}</span>
+                          <span>Roles: {po.sources.roles}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Semester Activity Timeline */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-sm font-bold text-slate-900">Co-Curricular Activity History by Academic Term</h3>
+                {transcript.semesters.length === 0 ? (
+                  <div className="p-8 bg-white border border-slate-200 rounded-xl text-center text-xs text-slate-500">
+                    No verified activities recorded across academic terms yet.
+                  </div>
+                ) : (
+                  transcript.semesters.map((sem, sIdx) => (
+                    <div key={sem.semester_id || `sem-${sIdx}`} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-subtle">
+                      <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <span className="font-bold text-xs text-slate-800">{sem.name}</span>
+                        <span className="text-xs text-slate-500">{sem.activities.length} Activities</span>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {sem.activities.map((act) => (
+                          <div key={act.event_id} className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-bold text-slate-900">{act.event_title}</h4>
+                                <Badge color="primary" size="sm">{act.club_name}</Badge>
+                                {act.club_role && act.club_role !== 'PARTICIPANT' && (
+                                  <Badge color="info" size="sm">{act.club_role}</Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                <span>Attended: {formatDate(act.attended_date)}</span>
+                                {act.certificate_serial && (
+                                  <span className="font-mono text-emerald-700 font-medium">
+                                    Cert: {act.certificate_serial}
+                                  </span>
+                                )}
+                              </div>
+                              {act.po_tags && act.po_tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 pt-1">
+                                  {act.po_tags.map((tag) => (
+                                    <span key={tag.code} className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-mono font-semibold">
+                                      {tag.code} (w: {tag.weight})
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="shrink-0 flex items-center gap-2">
+                              {act.reflection ? (
+                                <Badge color="success" size="sm">
+                                  Reflection Logged (+0.5x)
+                                </Badge>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenReflection({ id: act.event_id, title: act.event_title })}
+                                  className={buttonClasses({ variant: 'outline', size: 'xs', className: 'text-xs text-blue-900 border-blue-200 hover:bg-blue-50' })}
+                                >
+                                  <PenLine className="w-3 h-3 mr-1" />
+                                  Write Reflection (+0.5x)
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Student Reflection Submission Modal */}
+      <Modal
+        isOpen={!!reflectingEvent}
+        onClose={() => setReflectingEvent(null)}
+        title="Submit Co-Curricular Reflection"
+        description={`Record your learning insights from attending "${reflectingEvent?.title || 'the event'}". Submitting reflection grants a 0.5x bonus to BAETE outcome weights.`}
+        size="md"
+      >
+        <form onSubmit={handleSubmitReflection} className="space-y-4 pt-1">
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Reflective Summary (Min 20 characters)
+            </label>
+            <textarea
+              required
+              rows={5}
+              value={reflectionText}
+              onChange={(e) => setReflectionText(e.target.value)}
+              placeholder="Describe key takeaways, engineering concepts applied, or team collaboration experience gained during this session..."
+              className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
+            />
+            <div className="flex justify-between text-[11px] text-slate-400">
+              <span>Supports BAETE Criterion 4 (Continuous Improvement)</span>
+              <span>{reflectionText.trim().length}/20 chars</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setReflectingEvent(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={actionLoading}
+              disabled={actionLoading || reflectionText.trim().length < 20}
+              leftIcon={<Send className="w-3.5 h-3.5" />}
+            >
+              Submit Reflection
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Confirmation Dialog for Pass Cancellation */}
       <Modal

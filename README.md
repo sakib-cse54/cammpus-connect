@@ -1,6 +1,18 @@
 # CampusConnect: University Club, Event & Activity Management Platform
 
+[![Production Deployment](https://img.shields.io/badge/Vercel-Live-brightgreen?logo=vercel)](https://cc54.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-cammpus--connect-blue?logo=github)](https://github.com/sakib-cse54/cammpus-connect)
+
 CampusConnect is a centralized, multi-tenant web application designed for university extracurricular management. It replaces fragmented communication channels and error-prone spreadsheets with an integrated, auditable, and automated web ecosystem.
+
+## Live Deployment Links
+
+| Environment / Access | URL | Description |
+| :--- | :--- | :--- |
+| **Primary Live Web App** | [https://cc54.vercel.app](https://cc54.vercel.app) | Ultra-short production domain (CC + Batch 54) |
+| **Department Domain** | [https://cc-cse.vercel.app](https://cc-cse.vercel.app) | Department of CSE branded alias |
+| **Full Project Domain** | [https://cammpus-connect.vercel.app](https://cammpus-connect.vercel.app) | Default Vercel production alias |
+| **GitHub Repository** | [https://github.com/sakib-cse54/cammpus-connect](https://github.com/sakib-cse54/cammpus-connect) | Official source code repository |
 
 ## Features
 
@@ -18,6 +30,7 @@ codes/
 ├── server/          # Express + TypeScript + SQLite
 ├── docker-compose.yml
 ├── package.json     # Monorepo workspace configuration
+├── vercel.json      # Vercel SPA routing and Vite configuration
 └── README.md
 ```
 

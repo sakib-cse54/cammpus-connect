@@ -25,9 +25,40 @@
     @apply border-slate-200;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-blue-100 selection:text-blue-900;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-marigold-200 selection:text-slate-900;
+    overflow-x: hidden;
+  }
+
+  /* Headings use the display face; weights are tamed so pages stop shouting. */
+  h1, h2, h3 {
+    @apply font-display;
+    letter-spacing: -0.015em;
+  }
+
+  h1.font-black, h2.font-black, h3.font-black,
+  h1.font-extrabold, h2.font-extrabold, h3.font-extrabold {
+    font-weight: 700;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  /* Wide tables scroll inside their container instead of stretching the page */
+  table {
+    @apply w-full;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* Bangla: prefer Bengali faces (loaded on demand) and give glyphs room to breathe */

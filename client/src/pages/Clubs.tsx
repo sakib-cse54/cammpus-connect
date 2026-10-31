@@ -74,19 +74,15 @@ export const Clubs: React.FC = () => {
     : clubs.filter(c => c.category === selectedCategory);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 pb-20">
+    <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 pb-20">
       {/* Header Banner with Clubs Fair Illustration */}
-      <div className="bg-slate-950 text-white rounded-2xl shadow-elevation border border-slate-800 relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
+      <div className="bg-blue-900 text-white rounded-2xl border border-blue-800 relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
         <div className="lg:col-span-7 p-6 sm:p-10 space-y-4 relative z-10 flex flex-col justify-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-900/60 text-blue-300 border border-blue-700/60 w-fit">
-            <Layers className="w-3.5 h-3.5 text-blue-400" />
-            <span>Chartered Campus Societies</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            University Clubs Directory
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">
+            Find your club
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-            Discover student-run academic, cultural, and engineering organizations governed under appointed university faculty advisors. Apply to participate in exclusive hackathons, seminars, and networking sessions.
+            Student-run academic, cultural and technical clubs, each guided by a faculty advisor. Apply to join and take part in their events.
           </p>
         </div>
         <div className="lg:col-span-5 relative h-52 sm:h-64 lg:h-auto overflow-hidden border-t lg:border-t-0 lg:border-l border-slate-800">
@@ -95,7 +91,7 @@ export const Clubs: React.FC = () => {
             alt="Campus Clubs and Student Societies Fair"
             className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-blue-900 via-blue-900/20 to-transparent" />
         </div>
       </div>
 
@@ -167,13 +163,13 @@ export const Clubs: React.FC = () => {
                 </p>
 
                 <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-500">Faculty Advisor:</span>
                     <span className="font-semibold text-slate-800 line-clamp-1">
                       {club.advisor_name || club.advisor_email || 'Assigned Faculty'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-500">Active Events:</span>
                     <span className="font-semibold text-slate-800">
                       {club.active_event_count || 0} scheduled
@@ -186,7 +182,7 @@ export const Clubs: React.FC = () => {
                 <Button
                   variant="primary"
                   size="sm"
-                  className="w-full"
+                  fullWidth
                   isLoading={actionLoading[club.id]}
                   onClick={() => handleApply(club.id)}
                   leftIcon={<UserPlus className="w-3.5 h-3.5" />}
@@ -194,7 +190,7 @@ export const Clubs: React.FC = () => {
                   Apply for Membership
                 </Button>
                 {actionStatus[club.id] && (
-                  <p className="text-[11px] font-semibold text-blue-900 text-center bg-blue-50 py-1 px-2 rounded-md border border-blue-200">
+                  <p className="text-xs font-semibold text-blue-900 text-center bg-blue-50 py-1 px-2 rounded-md border border-blue-200">
                     {actionStatus[club.id]}
                   </p>
                 )}

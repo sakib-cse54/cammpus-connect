@@ -1,4 +1,4 @@
-import type { Club, EventItem, RegistrationItem, CertificateItem, NotificationItem, User, StudentProfile, AuthUser } from '../types.js';
+import type { Club, EventItem, RegistrationItem, CertificateItem, NotificationItem, User, StudentProfile, AuthUser, Venue, PoTag, TranscriptData } from '../types.js';
 
 /** Loose row for endpoints whose shape is consumed dynamically (admin tables, rosters). */
 export type Row = Record<string, unknown>;
@@ -15,8 +15,11 @@ export interface NotificationsResponse { unread_count: number; notifications: No
 export interface MessageResponse { message?: string; status?: string }
 export interface RegisterEventResponse extends MessageResponse { registration?: RegistrationItem }
 export interface IssueCertificateResponse extends MessageResponse { certificate?: CertificateItem }
-export interface LiveQrResponse { qr_data_url: string; token: string; expires_in_seconds?: number; checkin_url?: string }
+export interface LiveQrResponse { qr_data_url: string; token: string; short_code?: string; expires_in_seconds?: number; checkin_url?: string }
 export interface MembersResponse { members: Row[] }
 export interface RosterResponse { roster: Row[] }
 export interface UsersResponse { users: Row[] }
 export interface AdminAnalyticsResponse { metrics?: Row; recent_audit_logs?: Row[] }
+export interface TranscriptResponse { transcript: TranscriptData }
+export interface VenuesResponse { venues: Venue[] }
+export interface OutcomesResponse { outcomes: { code: string; title_en: string; title_bn?: string; description?: string }[] }

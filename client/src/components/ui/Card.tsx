@@ -12,10 +12,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   ...props
 }, ref) => {
   const variantStyles = {
-    default: 'bg-white rounded-xl border border-slate-200 shadow-sm',
-    flat: 'bg-slate-50/70 rounded-xl border border-slate-200',
-    raised: 'bg-white rounded-xl border border-slate-200 shadow-md',
-    interactive: 'bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer'
+    default: 'bg-white rounded-2xl border border-slate-200 shadow-card',
+    flat: 'bg-slate-50 rounded-2xl border border-slate-200',
+    raised: 'bg-white rounded-2xl border border-slate-200 shadow-elevation',
+    interactive: 'bg-white rounded-2xl border border-slate-200 shadow-card hover:shadow-elevation hover:-translate-y-0.5 transition cursor-pointer'
   };
 
   return (
@@ -102,7 +102,7 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 }, ref) => (
   <div
     ref={ref}
-    className={cn('px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between rounded-b-xl', className)}
+    className={cn('px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between rounded-b-2xl', className)}
     {...props}
   >
     {children}

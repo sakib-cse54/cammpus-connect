@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api.js';
 import { Badge } from '../components/ui/Badge.js';
-import { Button } from '../components/ui/Button.js';
+import { Button, buttonClasses } from '../components/ui/Button.js';
 import { Alert } from '../components/ui/Alert.js';
 import { formatDate, copyToClipboard } from '../lib/utils.js';
 
@@ -60,6 +60,21 @@ export const PublicVerify: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-10 pb-24">
+      {/* Navigation Switcher between Certificate and Transcript Verification */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-center p-1 bg-slate-100 rounded-full border border-slate-200 text-xs font-semibold">
+          <span className="px-4 py-1.5 rounded-full bg-white text-blue-900 shadow-sm border border-slate-200">
+            Verify Certificate
+          </span>
+          <Link
+            to="/transcripts/verify"
+            className="px-4 py-1.5 rounded-full text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            Verify Co-Curricular Transcript
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex justify-center">
@@ -70,11 +85,11 @@ export const PublicVerify: React.FC = () => {
           />
         </div>
         <div className="space-y-1.5">
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Public Certificate Verification Portal
+          <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+            Verify a certificate
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Cryptographic validation of institutional certificates issued by university clubs. Open to employers, academic boards, and students.
+            Enter the serial number printed on a CampusConnect certificate to confirm it is genuine.
           </p>
         </div>
       </div>
@@ -90,7 +105,7 @@ export const PublicVerify: React.FC = () => {
             value={serialInput}
             onChange={(e) => setSerialInput(e.target.value)}
             placeholder="Enter Serial Number (e.g. CERT-2026-XXXXXX)"
-            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-800 focus:outline-none shadow-sm placeholder:text-slate-400"
+            className="w-full h-12 pl-10 pr-4 bg-white border border-slate-300 rounded-full text-sm font-mono focus:outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition placeholder:text-slate-400"
           />
         </div>
         <Button
@@ -98,7 +113,7 @@ export const PublicVerify: React.FC = () => {
           isLoading={loading}
           disabled={!serialInput.trim()}
           leftIcon={<Search className="w-4 h-4" />}
-          className="px-6 py-3 rounded-xl shadow-md"
+          size="lg"
         >
           Verify
         </Button>
@@ -130,10 +145,10 @@ export const PublicVerify: React.FC = () => {
                     className="w-14 h-14 rounded-xl object-cover shadow-md ring-2 ring-emerald-400 shrink-0"
                   />
                   <div>
-                    <h2 className="text-sm font-black uppercase tracking-wider text-emerald-950">
+                    <h2 className="text-sm font-boldr text-emerald-950">
                       Verified Authentic Credential
                     </h2>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-xs text-slate-500 font-medium">
                       Issuing Authority: {certData.verification_authority}
                     </p>
                   </div>
@@ -143,7 +158,7 @@ export const PublicVerify: React.FC = () => {
                   href={`/api/v1/certificates/download/${certData.serial_number}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                  className={buttonClasses({ size: 'sm' })}
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download Official PDF</span>
@@ -153,7 +168,7 @@ export const PublicVerify: React.FC = () => {
               {/* Certificate Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
                 <div className="space-y-1">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Recipient Legal Name</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Recipient Legal Name</span>
                   <p className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <User className="w-4 h-4 text-blue-800 shrink-0" />
                     <span>{certData.recipient_name}</span>
@@ -161,35 +176,35 @@ export const PublicVerify: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Student ID Number</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Student ID Number</span>
                   <p className="text-sm font-mono font-bold text-slate-900">
                     {certData.student_id_number || 'N/A'}
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Academic Department</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Academic Department</span>
                   <p className="text-xs font-semibold text-slate-700">
                     {certData.student_department || 'General'}
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Issuance Date</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Issuance Date</span>
                   <p className="text-xs font-semibold text-slate-700">
                     {formatDate(certData.issued_at, { month: 'long', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
 
                 <div className="sm:col-span-2 space-y-1 pt-3 border-t border-slate-100">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Event Title</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Event Title</span>
                   <p className="text-sm font-bold text-slate-900">
                     {certData.event_title}
                   </p>
                 </div>
 
                 <div className="sm:col-span-2 space-y-1">
-                  <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Chartered University Club</span>
+                  <span className="font-semibold text-slate-400 text-[11px] tracking-wider">Chartered University Club</span>
                   <p className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
                     <Building className="w-4 h-4 text-blue-700 shrink-0" />
                     <span>{certData.club_name}</span>
@@ -198,15 +213,15 @@ export const PublicVerify: React.FC = () => {
               </div>
 
               {/* Cryptographic SHA-256 Hash Box */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/90 space-y-2 font-mono text-[11px]">
-                <div className="flex items-center justify-between text-slate-500 uppercase text-[10px] font-bold">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/90 space-y-2 font-mono text-xs">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold">
                   <span className="flex items-center gap-1.5 text-slate-700">
                     <Lock className="w-3.5 h-3.5 text-blue-900" />
                     <span>SHA-256 Digital Fingerprint</span>
                   </span>
                   <button
                     onClick={handleCopyHash}
-                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-800 hover:text-blue-950 transition"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-800 hover:text-blue-950 transition"
                   >
                     {copiedHash ? (
                       <>
@@ -221,10 +236,10 @@ export const PublicVerify: React.FC = () => {
                     )}
                   </button>
                 </div>
-                <p className="break-all text-slate-800 font-semibold text-[11px] bg-white p-2.5 rounded-lg border border-slate-200 select-all">
+                <p className="break-all text-slate-800 font-semibold text-xs bg-white p-2.5 rounded-lg border border-slate-200 select-all">
                   {certData.sha256_hash}
                 </p>
-                <div className="flex items-center gap-1.5 text-emerald-700 font-sans font-semibold text-[11px]">
+                <div className="flex items-center gap-1.5 text-emerald-700 font-sans font-semibold text-xs">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Tamper-Proof Ledger Match Verified</span>
                 </div>
