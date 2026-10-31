@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { db } from '../db/index.js';
 import { AuthTokenPayload, UserRole } from '../types/index.js';
 import { ClubAccess, getClubAccess, getEventClubId } from '../services/clubAccess.js';
 import { env } from '../config/env.js';
@@ -108,6 +109,11 @@ export async function requireClubExecutive(req: Request, res: Response, next: Ne
     return;
   }
   try {
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1', [clubId]);
+    if (!club) {
+      res.status(404).json({ error: 'Club not found' });
+      return;
+    }
     const access = await getClubAccess(req.user, clubId);
     if (!access) {
       res.status(403).json({ error: 'Forbidden: You are not an authorized executive of this club' });

@@ -37,10 +37,16 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseIssues(raw: unknown): ApiIssue[] {
   if (!Array.isArray(raw)) return [];
-  return raw.filter(isRecord).map((i) => ({
-    path: typeof i.path === 'string' ? i.path : Array.isArray(i.path) ? i.path.join('.') : '',
-    message: typeof i.message === 'string' ? i.message : ''
-  }));
+  return raw.map((i) => {
+    if (typeof i === 'string') return { path: '', message: i };
+    if (isRecord(i)) {
+      return {
+        path: typeof i.path === 'string' ? i.path : Array.isArray(i.path) ? i.path.join('.') : '',
+        message: typeof i.message === 'string' ? i.message : ''
+      };
+    }
+    return { path: '', message: String(i) };
+  });
 }
 
 /** Builds an ApiError from a parsed JSON body (server envelope: error, code, issues, requestId). */

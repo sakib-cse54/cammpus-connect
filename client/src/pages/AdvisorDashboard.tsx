@@ -212,12 +212,11 @@ export const AdvisorDashboard: React.FC = () => {
             OBE Report
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             isLoading={downloadingReport}
             onClick={handleDownloadReportCsv}
             leftIcon={<Download className="w-3.5 h-3.5" />}
-            className="bg-blue-800/60 text-white border-blue-700 hover:bg-blue-800"
           >
             Export CSV
           </Button>
@@ -457,8 +456,9 @@ export const AdvisorDashboard: React.FC = () => {
                             <select
                               value={active.weight}
                               onChange={(e) => handleChangePoWeight(tag.code, Number(e.target.value))}
-                              className="px-1 py-0.5 text-[10px] font-bold bg-white border border-slate-300 rounded focus:outline-none"
+                              className="px-1 py-0.5 text-[10px] font-bold bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-800"
                               title="Weight (1-3)"
+                              aria-label={`Weight for ${tag.code}`}
                             >
                               <option value={1}>w: 1</option>
                               <option value={2}>w: 2</option>

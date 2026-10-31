@@ -4,6 +4,7 @@ import { api } from '../services/api.js';
 import type { LiveQrResponse } from '../services/responses.js';
 import { Button, buttonClasses } from './ui/Button.js';
 import { Badge } from './ui/Badge.js';
+import { useFocusTrap } from './ui/useFocusTrap.js';
 import { copyToClipboard } from '../lib/utils.js';
 
 interface DynamicQrModalProps {
@@ -24,6 +25,9 @@ export const DynamicQrModal: React.FC<DynamicQrModalProps> = ({ eventId, eventTi
 
   const expiresAtRef = useRef<number>(Date.now() + 20000);
   const loadingRef = useRef<boolean>(false);
+  const surfaceRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(surfaceRef, isOpen, onClose);
 
   const fetchToken = async () => {
     loadingRef.current = true;
@@ -67,14 +71,13 @@ export const DynamicQrModal: React.FC<DynamicQrModalProps> = ({ eventId, eventTi
   }, [isOpen, eventId]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -100,16 +103,20 @@ export const DynamicQrModal: React.FC<DynamicQrModalProps> = ({ eventId, eventTi
       aria-labelledby="qr-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4"
     >
-      <div className="bg-white rounded-2xl shadow-modal max-w-md w-full overflow-hidden border border-slate-200">
+      <div
+        ref={surfaceRef}
+        tabIndex={-1}
+        className="bg-white rounded-2xl shadow-modal max-w-md w-full overflow-hidden border border-slate-200 focus:outline-none"
+      >
         {/* Header */}
         <div className="px-6 py-4 bg-blue-900 text-white flex justify-between items-center border-b border-blue-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-900 flex items-center justify-center text-blue-200">
+            <div className="w-8 h-8 rounded-lg bg-blue-800 flex items-center justify-center text-blue-200">
               <QrCode className="w-4 h-4" />
             </div>
             <div>
               <h2 id="qr-modal-title" className="font-bold text-sm tracking-tight text-white">Dynamic Attendance Scanner</h2>
-              <p className="text-[11px] text-slate-400 font-mono">20-Second Rotating Token</p>
+              <p className="text-[11px] text-blue-200 font-mono">20-Second Rotating Token</p>
             </div>
           </div>
           <button

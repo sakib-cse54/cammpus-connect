@@ -19,24 +19,19 @@ export const createClubSchema = z.object({
 
 export class ClubController {
   public static async getClubs(req: Request, res: Response): Promise<void> {
-    try {
-      const clubs = await db.query(`
-        SELECT c.*, 
-               u.email as advisor_email,
-               p.full_name as advisor_name,
-               (SELECT COUNT(*) FROM club_memberships m WHERE m.club_id = c.id AND m.status = 'APPROVED') as member_count,
-               (SELECT COUNT(*) FROM events e WHERE e.club_id = c.id AND e.status = 'PUBLISHED') as active_event_count
-        FROM clubs c
-        LEFT JOIN users u ON c.faculty_advisor_id = u.id
-        LEFT JOIN student_profiles p ON u.id = p.user_id
-        WHERE c.status = 'ACTIVE'
-        ORDER BY c.name ASC
-      `);
-      res.json({ clubs });
-    } catch (err: unknown) {
-      console.error('Failed to fetch club directory', err);
-      res.status(500).json({ error: 'Failed to fetch club directory' });
-    }
+    const clubs = await db.query(`
+      SELECT c.*, 
+             u.email as advisor_email,
+             p.full_name as advisor_name,
+             (SELECT COUNT(*) FROM club_memberships m WHERE m.club_id = c.id AND m.status = 'APPROVED') as member_count,
+             (SELECT COUNT(*) FROM events e WHERE e.club_id = c.id AND e.status = 'PUBLISHED') as active_event_count
+      FROM clubs c
+      LEFT JOIN users u ON c.faculty_advisor_id = u.id
+      LEFT JOIN student_profiles p ON u.id = p.user_id
+      WHERE c.status = 'ACTIVE'
+      ORDER BY c.name ASC
+    `);
+    res.json({ clubs });
   }
 
   public static async getClubByIdOrSlug(req: Request, res: Response): Promise<void> {
@@ -177,7 +172,10 @@ export class ClubController {
 
   public static async getClubMembers(req: Request, res: Response): Promise<void> {
     const clubId = String(req.params.clubId);
-    const access = await getClubAccess(req.user!, clubId);
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1 OR slug = $1', [clubId]);
+    if (!club) throw new HttpError(404, 'Club not found');
+
+    const access = await getClubAccess(req.user!, club.id);
     if (access) {
       const members = await db.query(`
         SELECT m.id as membership_id, m.club_role, m.status, m.joined_at,
@@ -188,7 +186,7 @@ export class ClubController {
         LEFT JOIN student_profiles p ON u.id = p.user_id
         WHERE m.club_id = $1
         ORDER BY CASE WHEN m.status = 'PENDING' THEN 1 ELSE 2 END, m.joined_at DESC
-      `, [clubId]);
+      `, [club.id]);
       res.json({ members, view: 'FULL' });
       return;
     }
@@ -198,13 +196,16 @@ export class ClubController {
       LEFT JOIN student_profiles p ON m.user_id = p.user_id
       WHERE m.club_id = $1 AND m.status = 'APPROVED'
       ORDER BY m.club_role ASC, p.full_name ASC
-    `, [clubId]);
+    `, [club.id]);
     res.json({ members, view: 'PUBLIC' });
   }
 
   /** All events of a club in every status, for its executives, advisor and admins. */
   public static async getClubEvents(req: Request, res: Response): Promise<void> {
     const clubId = String(req.params.clubId);
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1 OR slug = $1', [clubId]);
+    if (!club) throw new HttpError(404, 'Club not found');
+
     const events = await db.query(`
       SELECT e.*, c.name as club_name, c.slug as club_slug,
              (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.id AND r.status = 'WAITLISTED') as waitlist_count
@@ -212,7 +213,7 @@ export class ClubController {
       JOIN clubs c ON e.club_id = c.id
       WHERE e.club_id = $1
       ORDER BY e.start_time DESC
-    `, [clubId]);
+    `, [club.id]);
     res.json({ events });
   }
 

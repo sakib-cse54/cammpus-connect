@@ -83,6 +83,103 @@ describe('Feedback submission and error hygiene', () => {
       .set(...bearer('admin'));
     expect(res.status).toBe(404);
   });
+
+  it('handles concurrent feedback submissions atomically without duplicate rows', async () => {
+    const concurrentEventId = 'event-test-concurrent-feedback';
+    await db.execute(
+      `INSERT INTO events (
+        id, club_id, title, description, venue, start_time, end_time,
+        capacity, registered_count, registration_deadline, status,
+        requires_feedback_for_cert, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9, 'COMPLETED', 1, $10)`,
+      [
+        concurrentEventId,
+        IDS.computerClub,
+        'Concurrent Test Event',
+        'Testing concurrency',
+        'Room 101',
+        '2026-10-01T10:00:00Z',
+        '2026-10-01T12:00:00Z',
+        50,
+        '2026-10-01T09:00:00Z',
+        IDS.shakhawat
+      ]
+    );
+
+    const regId = 'reg-test-concurrent-nusrat';
+    await db.execute(
+      `INSERT INTO registrations (id, event_id, user_id, ticket_code, status, created_at)
+       VALUES ($1, $2, $3, 'TCK-CONCURRENT-NUSRAT', 'ATTENDED', $4)`,
+      [regId, concurrentEventId, IDS.nusrat, new Date().toISOString()]
+    );
+
+    await db.execute(
+      `INSERT INTO attendance_records (id, event_id, user_id, registration_id, check_in_time, method, recorded_by)
+       VALUES ($1, $2, $3, $4, $5, 'QR_DYNAMIC', $6)`,
+      ['att-test-concurrent-nusrat', concurrentEventId, IDS.nusrat, regId, new Date().toISOString(), IDS.shakhawat]
+    );
+
+    const [res1, res2] = await Promise.all([
+      request(app)
+        .post(`${API}/events/${concurrentEventId}/feedback`)
+        .set(...bearer('nusrat'))
+        .send({ rating: 5, comments: 'Concurrent feedback 1' }),
+      request(app)
+        .post(`${API}/events/${concurrentEventId}/feedback`)
+        .set(...bearer('nusrat'))
+        .send({ rating: 4, comments: 'Concurrent feedback 2' })
+    ]);
+
+    const statuses = [res1.status, res2.status].sort();
+    expect(statuses).toEqual([201, 409]);
+  });
+});
+
+describe('Club existence verification across endpoints', () => {
+  it('returns 404 for non-existent club member listing', async () => {
+    const res = await request(app)
+      .get(`${API}/clubs/non-existent-club-id/members`)
+      .set(...bearer('rahim'));
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for non-existent club events listing', async () => {
+    const res = await request(app)
+      .get(`${API}/clubs/non-existent-club-id/events`)
+      .set(...bearer('admin'));
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when admin drafts event for non-existent club', async () => {
+    const res = await request(app)
+      .post(`${API}/events`)
+      .set(...bearer('admin'))
+      .send({
+        club_id: 'non-existent-club-id',
+        title: 'Draft for Ghost Club',
+        description: 'Should fail with 404 not 500 foreign key crash',
+        start_time: '2026-11-20T10:00:00Z',
+        end_time: '2026-11-20T12:00:00Z',
+        registration_deadline: '2026-11-20T09:00:00Z',
+        capacity: 100,
+        venue: 'Main Auditorium'
+      });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toContain('Club not found');
+  });
+
+  it('returns 404 when admin creates announcement for non-existent club', async () => {
+    const res = await request(app)
+      .post(`${API}/clubs/non-existent-club-id/announcements`)
+      .set(...bearer('admin'))
+      .send({
+        title: 'Ghost Announcement',
+        content: 'Should fail with 404 not 500 foreign key crash',
+        priority: 'NORMAL'
+      });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toContain('Club not found');
+  });
 });
 
 describe('Club creation validation and error hygiene', () => {

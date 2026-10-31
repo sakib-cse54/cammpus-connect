@@ -117,6 +117,8 @@ export class EventController {
   public static async createDraftEvent(req: Request, res: Response): Promise<void> {
     const input = normalizeTimes(validate(createEventSchema, req.body));
     const user = req.user!;
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1', [input.club_id]);
+    if (!club) throw new HttpError(404, 'Club not found');
     const access = await getClubAccess(user, input.club_id);
     if (!access) throw new HttpError(403, 'Forbidden: You are not an authorized executive of this club');
 

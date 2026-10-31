@@ -97,7 +97,7 @@ export const Register: React.FC = () => {
             {issues.length > 0 && (
               <ul className="list-disc list-inside text-xs space-y-0.5 pt-1">
                 {issues.map((iss, i) => (
-                  <li key={i}>{iss}</li>
+                  <li key={i}>{typeof iss === 'string' ? iss : (iss as any).message || (iss as any).path}</li>
                 ))}
               </ul>
             )}

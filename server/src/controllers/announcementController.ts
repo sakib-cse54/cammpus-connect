@@ -16,6 +16,9 @@ export class AnnouncementController {
     if (!req.user) throw new HttpError(401, 'Unauthorized');
     // The club comes only from the authorized URL param; body.club_id is ignored.
     const clubId = String(req.params.clubId);
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1', [clubId]);
+    if (!club) throw new HttpError(404, 'Club not found');
+
     const { title, content } = validate(announcementSchema, req.body);
     const authorId = req.user.userId;
     const announcementId = uuidv4();

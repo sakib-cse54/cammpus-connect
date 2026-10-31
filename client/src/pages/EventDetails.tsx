@@ -419,7 +419,7 @@ export const EventDetails: React.FC = () => {
                           key={star}
                           type="button"
                           onClick={() => setRating(star)}
-                          className="p-1 focus:outline-none transition active:scale-95"
+                          className="p-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-800 transition active:scale-95"
                           aria-label={`Rate ${star} star`}
                         >
                           <Star className={`w-6 h-6 ${star <= rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`} />
@@ -430,10 +430,11 @@ export const EventDetails: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    <label htmlFor="event-feedback-comments" className="block text-xs font-bold text-slate-700 mb-1.5">
                       Constructive Session Feedback
                     </label>
                     <textarea
+                      id="event-feedback-comments"
                       rows={3}
                       value={feedbackComment}
                       onChange={(e) => setFeedbackComment(e.target.value)}

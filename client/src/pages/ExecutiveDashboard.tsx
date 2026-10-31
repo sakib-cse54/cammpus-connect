@@ -317,8 +317,9 @@ export const ExecutiveDashboard: React.FC = () => {
 
         {/* Club Selector Dropdown */}
         <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-slate-400 tracking-wider">Chartered Club:</label>
+          <label htmlFor="chartered-club-select" className="text-xs font-bold text-slate-400 tracking-wider">Chartered Club:</label>
           <select
+            id="chartered-club-select"
             value={selectedClubId}
             onChange={(e) => setSelectedClubId(e.target.value)}
             className="px-3.5 py-2 bg-slate-900 border border-slate-700 text-white rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
@@ -579,10 +580,11 @@ export const ExecutiveDashboard: React.FC = () => {
           />
 
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label htmlFor="create-event-venue" className="block text-xs font-semibold text-slate-700">
               Institutional Venue
             </label>
             <select
+              id="create-event-venue"
               value={newEventData.venue_id || 'custom'}
               onChange={(e) => handleVenueSelect(e.target.value)}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
@@ -605,10 +607,11 @@ export const ExecutiveDashboard: React.FC = () => {
           />
 
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label htmlFor="create-event-po" className="block text-xs font-semibold text-slate-700">
               Proposed BAETE Program Outcome (PO Tag)
             </label>
             <select
+              id="create-event-po"
               value={newEventData.po_tag_code}
               onChange={(e) => setNewEventData({ ...newEventData, po_tag_code: e.target.value })}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"

@@ -67,7 +67,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         {toasts.map((t) => (
           <div
             key={t.id}
-            role="status" aria-live="polite"
+            role={t.type === 'error' ? 'alert' : 'status'}
+            aria-live={t.type === 'error' ? 'assertive' : 'polite'}
             className={cn(
               'pointer-events-auto rounded-xl border p-4 shadow-elevation flex items-start gap-3 transition-all animate-in fade-in slide-in-from-top-2 duration-200',
               borders[t.type]

@@ -713,10 +713,11 @@ export const StudentDashboard: React.FC = () => {
       >
         <form onSubmit={handleSubmitReflection} className="space-y-4 pt-1">
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label htmlFor="reflection-text" className="block text-xs font-semibold text-slate-700">
               Reflective Summary (Min 20 characters)
             </label>
             <textarea
+              id="reflection-text"
               required
               rows={5}
               value={reflectionText}

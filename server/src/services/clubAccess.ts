@@ -12,12 +12,13 @@ function isExecutiveRole(role: string): boolean {
 
 /** Resolves the caller's management access to a club (admin, advisor, approved executive). */
 export async function getClubAccess(user: AuthTokenPayload, clubId: string, client: DbClient = db): Promise<ClubAccess> {
-  if (user.role === 'ADMIN') return 'ADMIN';
   const club = await client.queryOne<{ faculty_advisor_id: string }>(
     'SELECT faculty_advisor_id FROM clubs WHERE id = $1',
     [clubId]
   );
-  if (club && club.faculty_advisor_id === user.userId) return 'ADVISOR';
+  if (!club) return null;
+  if (user.role === 'ADMIN') return 'ADMIN';
+  if (club.faculty_advisor_id === user.userId) return 'ADVISOR';
   const membership = await client.queryOne<{ club_role: string; status: string }>(
     'SELECT club_role, status FROM club_memberships WHERE club_id = $1 AND user_id = $2',
     [clubId, user.userId]

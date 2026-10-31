@@ -219,12 +219,13 @@ export const CheckIn: React.FC = () => {
           ) : (
             <form onSubmit={handleScanSubmit} className="space-y-4">
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-700">
+                <label htmlFor="checkin-verification-code" className="block text-xs font-semibold text-slate-700">
                   Verification Code or Short Code
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
+                    id="checkin-verification-code"
                     type="text"
                     required
                     value={codeInput}
