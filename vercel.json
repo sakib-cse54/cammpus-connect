@@ -1,9 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "name": "cammpus-connect",
   "framework": "vite",
-  "buildCommand": "npm run build --workspace=client",
-  "outputDirectory": "client/dist",
   "rewrites": [
     {
       "source": "/(.*)",
