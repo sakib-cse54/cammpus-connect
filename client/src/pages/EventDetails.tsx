@@ -340,7 +340,7 @@ export const EventDetails: React.FC = () => {
 
             {/* Description */}
             <div className="space-y-2">
-              <h2 className="text-sm font-bold text-slate-900r">Event Overview</h2>
+              <h2 className="text-sm font-bold text-slate-900">Event Overview</h2>
               <div className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
                 {event.description}
               </div>
@@ -348,7 +348,7 @@ export const EventDetails: React.FC = () => {
 
             {event.advisor_remarks && (
               <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-1">
-                <p className="font-bold text-blue-950r text-xs">
+                <p className="font-bold text-blue-950 text-xs">
                   Faculty Advisor Governance Note
                 </p>
                 <p className="text-blue-900 italic leading-relaxed">{event.advisor_remarks}</p>
@@ -410,7 +410,7 @@ export const EventDetails: React.FC = () => {
               ) : !feedbackSubmitted ? (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-4 pt-2">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700r mb-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-2">
                       Session Evaluation Rating (1 to 5 Stars)
                     </label>
                     <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export const EventDetails: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700r mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Constructive Session Feedback
                     </label>
                     <textarea
@@ -496,7 +496,7 @@ export const EventDetails: React.FC = () => {
             {userRegistration ? (
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-500r">Your Reservation</span>
+                  <span className="text-[11px] font-bold text-slate-500">Your Reservation</span>
                   <Badge
                     color={
                       userRegistration.status === 'CONFIRMED' ? 'success' :

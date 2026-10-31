@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -7,6 +7,9 @@ const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), in
  * calls onEscape on Escape, and restores focus to the previously focused element on exit.
  */
 export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean, onEscape?: () => void): void {
+  const onEscapeRef = useRef(onEscape);
+  onEscapeRef.current = onEscape;
+
   useEffect(() => {
     if (!active) return;
     const container = ref.current;
@@ -17,9 +20,9 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     (first ?? container).focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onEscape) {
+      if (e.key === 'Escape' && onEscapeRef.current) {
         e.stopPropagation();
-        onEscape();
+        onEscapeRef.current();
         return;
       }
       if (e.key !== 'Tab') return;

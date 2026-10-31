@@ -105,7 +105,7 @@ export const Login: React.FC = () => {
         {/* Quick Fill Demo Credentials Box */}
         <div className="pt-5 border-t border-slate-100 space-y-2.5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-500r">
+            <p className="text-xs font-bold text-slate-500">
               Demo accounts
             </p>
             <Badge color="primary" size="sm">

@@ -30,9 +30,12 @@ export const Alert: React.FC<AlertProps> = ({
     error: <AlertCircle className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />
   };
 
+  const isError = variant === 'error';
+
   return (
     <div
-      role="alert" aria-live="assertive"
+      role={isError ? 'alert' : 'status'}
+      aria-live={isError ? 'assertive' : 'polite'}
       className={cn(
         'p-4 rounded-xl border flex items-start gap-3.5 text-xs sm:text-sm leading-relaxed transition-all shadow-subtle',
         variantStyles[variant],

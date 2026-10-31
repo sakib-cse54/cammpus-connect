@@ -30,10 +30,10 @@ router.patch('/auth/users/:id/role', authenticateToken, requireRoles('ADMIN'), h
 // ==========================================
 // 2. Clubs & Memberships
 // ==========================================
-router.get('/clubs', ClubController.getClubs);
-router.get('/clubs/:idOrSlug', ClubController.getClubByIdOrSlug);
-router.post('/clubs', authenticateToken, requireRoles('ADMIN'), ClubController.createClub);
-router.post('/clubs/:clubId/apply', authenticateToken, ClubController.applyForMembership);
+router.get('/clubs', h(ClubController.getClubs));
+router.get('/clubs/:idOrSlug', h(ClubController.getClubByIdOrSlug));
+router.post('/clubs', authenticateToken, requireRoles('ADMIN'), h(ClubController.createClub));
+router.post('/clubs/:clubId/apply', authenticateToken, h(ClubController.applyForMembership));
 router.get('/clubs/:clubId/members', authenticateToken, h(ClubController.getClubMembers));
 router.patch('/clubs/:clubId/members/:membershipId', authenticateToken, requireClubExecutive, h(ClubController.reviewMembership));
 router.get('/clubs/:clubId/events', authenticateToken, requireClubExecutive, h(ClubController.getClubEvents));
@@ -41,7 +41,7 @@ router.get('/me/clubs', authenticateToken, h(ClubController.getMyClubs));
 router.get('/clubs/:clubId/analytics', authenticateToken, requireClubExecutive, h(AnalyticsController.getClubExecutiveDashboard));
 
 // Announcements
-router.get('/clubs/:clubId/announcements', AnnouncementController.getClubAnnouncements);
+router.get('/clubs/:clubId/announcements', h(AnnouncementController.getClubAnnouncements));
 router.post('/clubs/:clubId/announcements', authenticateToken, requireClubExecutive, h(AnnouncementController.createAnnouncement));
 
 // ==========================================
@@ -90,10 +90,10 @@ router.get('/certificates/verify/:serialNumber', ipRateLimiter(60, 60 * 1000), h
 // ==========================================
 // 7. Feedback & Notifications
 // ==========================================
-router.post('/events/:eventId/feedback', authenticateToken, FeedbackController.submitFeedback);
-router.get('/events/:eventId/feedback', authenticateToken, requireEventClubRole(), FeedbackController.getEventFeedback);
-router.get('/notifications', authenticateToken, AnnouncementController.getUserNotifications);
-router.patch('/notifications/:id/read', authenticateToken, AnnouncementController.markNotificationRead);
+router.post('/events/:eventId/feedback', authenticateToken, h(FeedbackController.submitFeedback));
+router.get('/events/:eventId/feedback', authenticateToken, requireEventClubRole(), h(FeedbackController.getEventFeedback));
+router.get('/notifications', authenticateToken, h(AnnouncementController.getUserNotifications));
+router.patch('/notifications/:id/read', authenticateToken, h(AnnouncementController.markNotificationRead));
 
 // ==========================================
 // 8. Academic Calendar, Venues & Scheduling

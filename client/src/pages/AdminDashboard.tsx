@@ -159,7 +159,7 @@ export const AdminDashboard: React.FC = () => {
             Export OBE CSV
           </Button>
           <Button
-            variant="primary"
+            variant="secondary"
             size="sm"
             onClick={() => setShowClubModal(true)}
             leftIcon={<Plus className="w-4 h-4" />}

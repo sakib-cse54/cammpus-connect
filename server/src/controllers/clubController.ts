@@ -8,6 +8,15 @@ import { HttpError, validate } from '../utils/http.js';
 import { EXECUTIVE_CLUB_ROLES, getClubAccess } from '../services/clubAccess.js';
 import { z } from 'zod';
 
+export const createClubSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+  slug: z.string().trim().min(2).max(50).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
+  description: z.string().trim().min(5, 'Description must be at least 5 characters').max(2000),
+  category: z.string().trim().min(2).max(50),
+  logo_url: z.string().trim().max(500).optional().nullable().or(z.literal('')),
+  faculty_advisor_id: z.string().trim().min(1, 'Faculty advisor ID is required')
+});
+
 export class ClubController {
   public static async getClubs(req: Request, res: Response): Promise<void> {
     try {
@@ -31,121 +40,110 @@ export class ClubController {
   }
 
   public static async getClubByIdOrSlug(req: Request, res: Response): Promise<void> {
-    try {
-      const idOrSlug = String(req.params.idOrSlug);
-      const club = await db.queryOne(`
-        SELECT c.*, 
-               u.email as advisor_email,
-               p.full_name as advisor_name,
-               (SELECT COUNT(*) FROM club_memberships m WHERE m.club_id = c.id AND m.status = 'APPROVED') as member_count
-        FROM clubs c
-        LEFT JOIN users u ON c.faculty_advisor_id = u.id
-        LEFT JOIN student_profiles p ON u.id = p.user_id
-        WHERE c.id = $1 OR c.slug = $1
-      `, [idOrSlug]);
+    const idOrSlug = String(req.params.idOrSlug);
+    const club = await db.queryOne(`
+      SELECT c.*, 
+             u.email as advisor_email,
+             p.full_name as advisor_name,
+             (SELECT COUNT(*) FROM club_memberships m WHERE m.club_id = c.id AND m.status = 'APPROVED') as member_count
+      FROM clubs c
+      LEFT JOIN users u ON c.faculty_advisor_id = u.id
+      LEFT JOIN student_profiles p ON u.id = p.user_id
+      WHERE c.id = $1 OR c.slug = $1
+    `, [idOrSlug]);
 
-      if (!club) {
-        res.status(404).json({ error: 'Club not found' });
-        return;
-      }
-
-      // Fetch executive committee
-      const executives = await db.query(`
-        SELECT m.club_role, m.joined_at, p.full_name
-        FROM club_memberships m
-        JOIN users u ON m.user_id = u.id
-        LEFT JOIN student_profiles p ON u.id = p.user_id
-        WHERE m.club_id = $1 AND m.status = 'APPROVED' AND m.club_role != 'MEMBER'
-        ORDER BY m.club_role ASC
-      `, [club.id]);
-
-      // Fetch active published events
-      const events = await db.query(`
-        SELECT * FROM events
-        WHERE club_id = $1 AND status = 'PUBLISHED'
-        ORDER BY start_time ASC
-      `, [club.id]);
-
-      res.json({ club, executives, events });
-    } catch (err: unknown) {
-      console.error('Failed to fetch club profile', err);
-      res.status(500).json({ error: 'Failed to fetch club profile' });
+    if (!club) {
+      throw new HttpError(404, 'Club not found');
     }
+
+    // Fetch executive committee
+    const executives = await db.query(`
+      SELECT m.club_role, m.joined_at, p.full_name
+      FROM club_memberships m
+      JOIN users u ON m.user_id = u.id
+      LEFT JOIN student_profiles p ON u.id = p.user_id
+      WHERE m.club_id = $1 AND m.status = 'APPROVED' AND m.club_role != 'MEMBER'
+      ORDER BY m.club_role ASC
+    `, [club.id]);
+
+    // Fetch active published events
+    const events = await db.query(`
+      SELECT * FROM events
+      WHERE club_id = $1 AND status = 'PUBLISHED'
+      ORDER BY start_time ASC
+    `, [club.id]);
+
+    res.json({ club, executives, events });
   }
 
   public static async createClub(req: Request, res: Response): Promise<void> {
-    try {
-      const { name, slug, description, category, logo_url, faculty_advisor_id } = req.body;
-      if (!name || !slug || !description || !category || !faculty_advisor_id) {
-        res.status(400).json({ error: 'Missing required club fields' });
-        return;
-      }
+    const { name, slug, description, category, logo_url, faculty_advisor_id } = validate(createClubSchema, req.body);
 
-      const existing = await db.queryOne('SELECT id FROM clubs WHERE slug = $1 OR name = $2', [slug, name]);
-      if (existing) {
-        res.status(409).json({ error: 'A club with this name or slug already exists' });
-        return;
-      }
-
-      const clubId = uuidv4();
-      await db.execute(
-        `INSERT INTO clubs (id, name, slug, description, category, logo_url, faculty_advisor_id, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', $8)`,
-        [clubId, name, slug, description, category, logo_url || null, faculty_advisor_id, nowIso()]
-      );
-
-      await logAudit(req.user?.userId || null, 'CLUB_CREATED', 'clubs', clubId, { name, slug }, req.ip);
-
-      res.status(201).json({ message: 'Club created successfully', clubId });
-    } catch (err: unknown) {
-      console.error('Failed to create club', err);
-      res.status(500).json({ error: 'Failed to create club' });
+    const advisor = await db.queryOne<{ id: string; role: string }>(
+      'SELECT id, role FROM users WHERE id = $1',
+      [faculty_advisor_id]
+    );
+    if (!advisor || (advisor.role !== 'FACULTY_ADVISOR' && advisor.role !== 'ADMIN')) {
+      throw new HttpError(400, 'Assigned advisor must be a registered faculty advisor or administrator', undefined, 'INVALID_ADVISOR');
     }
+
+    const existing = await db.queryOne('SELECT id FROM clubs WHERE slug = $1 OR name = $2', [slug, name]);
+    if (existing) {
+      throw new HttpError(409, 'A club with this name or slug already exists', undefined, 'CLUB_EXISTS');
+    }
+
+    const clubId = uuidv4();
+    await db.execute(
+      `INSERT INTO clubs (id, name, slug, description, category, logo_url, faculty_advisor_id, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', $8)`,
+      [clubId, name, slug, description, category, logo_url || null, faculty_advisor_id, nowIso()]
+    );
+
+    await logAudit(req.user?.userId || null, 'CLUB_CREATED', 'clubs', clubId, { name, slug }, req.ip);
+
+    res.status(201).json({ message: 'Club created successfully', clubId });
   }
 
   public static async applyForMembership(req: Request, res: Response): Promise<void> {
-    try {
-      const clubId = String(req.params.clubId);
-      const userId = req.user!.userId;
+    const clubId = String(req.params.clubId);
+    if (!req.user) throw new HttpError(401, 'Unauthorized');
+    const userId = req.user.userId;
 
-      const existing = await db.queryOne<ClubMembership>(
-        'SELECT id, status FROM club_memberships WHERE club_id = $1 AND user_id = $2',
-        [clubId, userId]
-      );
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1', [clubId]);
+    if (!club) throw new HttpError(404, 'Club not found');
 
-      if (existing) {
-        if (existing.status === 'APPROVED') {
-          res.status(400).json({ error: 'You are already an active member of this club' });
-          return;
-        }
-        if (existing.status === 'PENDING') {
-          res.status(400).json({ error: 'Your membership application is already pending review' });
-          return;
-        }
-        // If previously REJECTED, reset status to PENDING
-        await db.execute(
-          `UPDATE club_memberships SET status = 'PENDING', club_role = 'MEMBER', joined_at = NULL WHERE id = $1`,
-          [existing.id]
-        );
-        await logAudit(userId, 'CLUB_MEMBERSHIP_APPLIED', 'club_memberships', existing.id, { clubId, reapplied: true }, req.ip);
-        res.status(200).json({ message: 'Membership application re-submitted successfully' });
-        return;
+    const existing = await db.queryOne<ClubMembership>(
+      'SELECT id, status FROM club_memberships WHERE club_id = $1 AND user_id = $2',
+      [clubId, userId]
+    );
+
+    if (existing) {
+      if (existing.status === 'APPROVED') {
+        throw new HttpError(400, 'You are already an active member of this club');
       }
-
-      const membershipId = uuidv4();
+      if (existing.status === 'PENDING') {
+        throw new HttpError(400, 'Your membership application is already pending review');
+      }
+      // If previously REJECTED, reset status to PENDING
       await db.execute(
-        `INSERT INTO club_memberships (id, club_id, user_id, club_role, status, joined_at)
-         VALUES ($1, $2, $3, 'MEMBER', 'PENDING', NULL)`,
-        [membershipId, clubId, userId]
+        `UPDATE club_memberships SET status = 'PENDING', club_role = 'MEMBER', joined_at = NULL WHERE id = $1`,
+        [existing.id]
       );
-
-      await logAudit(userId, 'CLUB_MEMBERSHIP_APPLIED', 'club_memberships', membershipId, { clubId }, req.ip);
-
-      res.status(201).json({ message: 'Membership application submitted successfully' });
-    } catch (err: unknown) {
-      console.error('Failed to submit application', err);
-      res.status(500).json({ error: 'Failed to submit application' });
+      await logAudit(userId, 'CLUB_MEMBERSHIP_APPLIED', 'club_memberships', existing.id, { clubId, reapplied: true }, req.ip);
+      res.status(200).json({ message: 'Membership application re-submitted successfully' });
+      return;
     }
+
+    const membershipId = uuidv4();
+    await db.execute(
+      `INSERT INTO club_memberships (id, club_id, user_id, club_role, status, joined_at)
+       VALUES ($1, $2, $3, 'MEMBER', 'PENDING', NULL)`,
+      [membershipId, clubId, userId]
+    );
+
+    await logAudit(userId, 'CLUB_MEMBERSHIP_APPLIED', 'club_memberships', membershipId, { clubId }, req.ip);
+
+    res.status(201).json({ message: 'Membership application submitted successfully' });
   }
 
   public static async reviewMembership(req: Request, res: Response): Promise<void> {

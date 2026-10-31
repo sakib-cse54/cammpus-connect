@@ -19,7 +19,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, title, onRetry, c
   const message = error instanceof Error ? error.message : typeof error === 'string' ? error : t('common.state.errorBody');
   const requestId = isApiError(error) ? error.requestId : null;
   return (
-    <div role="alert" className={cn('rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center space-y-3', className)}>
+    <div role="alert" aria-live="assertive" className={cn('rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center space-y-3', className)}>
       <AlertTriangle className="w-7 h-7 text-rose-600 mx-auto" aria-hidden="true" />
       <div className="space-y-1">
         <p className="text-sm font-bold text-slate-900">{title ?? t('common.state.errorTitle')}</p>

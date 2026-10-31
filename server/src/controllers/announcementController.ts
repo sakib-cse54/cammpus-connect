@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
 import { logAudit } from '../middleware/audit.js';
 import { nowIso } from '../utils/time.js';
-import { validate } from '../utils/http.js';
+import { HttpError, validate } from '../utils/http.js';
 import { z } from 'zod';
 
 const announcementSchema = z.object({
@@ -13,10 +13,11 @@ const announcementSchema = z.object({
 
 export class AnnouncementController {
   public static async createAnnouncement(req: Request, res: Response): Promise<void> {
+    if (!req.user) throw new HttpError(401, 'Unauthorized');
     // The club comes only from the authorized URL param; body.club_id is ignored.
     const clubId = String(req.params.clubId);
     const { title, content } = validate(announcementSchema, req.body);
-    const authorId = req.user!.userId;
+    const authorId = req.user.userId;
     const announcementId = uuidv4();
     const createdAt = nowIso();
 
@@ -45,56 +46,55 @@ export class AnnouncementController {
   }
 
   public static async getClubAnnouncements(req: Request, res: Response): Promise<void> {
-    try {
-      const clubId = String(req.params.clubId);
-      const announcements = await db.query(`
-        SELECT a.*, p.full_name as author_name, c.name as club_name
-        FROM announcements a
-        JOIN clubs c ON a.club_id = c.id
-        LEFT JOIN users u ON a.author_id = u.id
-        LEFT JOIN student_profiles p ON u.id = p.user_id
-        WHERE a.club_id = $1
-        ORDER BY a.created_at DESC
-      `, [clubId]);
+    const clubId = String(req.params.clubId);
+    const club = await db.queryOne<{ id: string }>('SELECT id FROM clubs WHERE id = $1 OR slug = $1', [clubId]);
+    if (!club) throw new HttpError(404, 'Club not found');
 
-      res.json({ announcements });
-    } catch (err: unknown) {
-      console.error('Failed to fetch announcements', err);
-      res.status(500).json({ error: 'Failed to fetch announcements' });
-    }
+    const announcements = await db.query(`
+      SELECT a.*, p.full_name as author_name, c.name as club_name
+      FROM announcements a
+      JOIN clubs c ON a.club_id = c.id
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN student_profiles p ON u.id = p.user_id
+      WHERE a.club_id = $1
+      ORDER BY a.created_at DESC
+    `, [club.id]);
+
+    res.json({ announcements });
   }
 
   public static async getUserNotifications(req: Request, res: Response): Promise<void> {
-    try {
-      const notifications = await db.query(`
-        SELECT * FROM notifications 
-        WHERE user_id = $1 
-        ORDER BY created_at DESC LIMIT 30
-      `, [req.user!.userId]);
+    if (!req.user) throw new HttpError(401, 'Unauthorized');
+    const userId = req.user.userId;
 
-      const unreadCount = await db.queryOne<{ count: number }>(
-        'SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND is_read = 0',
-        [req.user!.userId]
-      );
+    const notifications = await db.query(`
+      SELECT * FROM notifications 
+      WHERE user_id = $1 
+      ORDER BY created_at DESC LIMIT 30
+    `, [userId]);
 
-      res.json({
-        unread_count: unreadCount?.count || 0,
-        notifications
-      });
-    } catch (err: unknown) {
-      console.error('Failed to retrieve notifications', err);
-      res.status(500).json({ error: 'Failed to retrieve notifications' });
-    }
+    const unreadCount = await db.queryOne<{ count: number }>(
+      'SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND is_read = 0',
+      [userId]
+    );
+
+    res.json({
+      unread_count: unreadCount?.count || 0,
+      notifications
+    });
   }
 
   public static async markNotificationRead(req: Request, res: Response): Promise<void> {
-    try {
-      const id = String(req.params.id);
-      await db.execute('UPDATE notifications SET is_read = 1 WHERE id = $1 AND user_id = $2', [id, req.user!.userId]);
-      res.json({ message: 'Notification marked as read' });
-    } catch (err: unknown) {
-      console.error('Failed to update notification', err);
-      res.status(500).json({ error: 'Failed to update notification' });
+    if (!req.user) throw new HttpError(401, 'Unauthorized');
+    const id = String(req.params.id);
+    const userId = req.user.userId;
+
+    const result = await db.execute('UPDATE notifications SET is_read = 1 WHERE id = $1 AND user_id = $2', [id, userId]);
+    if (result.rowCount === 0) {
+      const exists = await db.queryOne('SELECT id FROM notifications WHERE id = $1', [id]);
+      if (!exists) throw new HttpError(404, 'Notification not found');
+      throw new HttpError(403, 'Forbidden: You do not own this notification');
     }
+    res.json({ message: 'Notification marked as read' });
   }
 }
