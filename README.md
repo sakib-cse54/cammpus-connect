@@ -25,9 +25,11 @@ CampusConnect is a centralized, multi-tenant web application designed for univer
 ## Project Structure
 
 ```text
-codes/
-├── client/          # Vite + React 18 + TypeScript + Tailwind CSS
-├── server/          # Express + TypeScript + SQLite
+campus-connect/
+├── client/          # Vite 6 + React 19 + TypeScript + Tailwind CSS
+├── server/          # Express 5 + TypeScript + SQLite3 WAL / PostgreSQL
+├── docs/            # Formal specifications, IEEE Project Report, and diagrams
+├── scripts/         # Automated document and terminal screenshot generators
 ├── docker-compose.yml
 ├── package.json     # Monorepo workspace configuration
 ├── vercel.json      # Vercel SPA routing and Vite configuration
