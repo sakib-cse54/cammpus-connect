@@ -37,3 +37,4 @@ server/storage/keys/*
 npm-debug.log*
 coverage/
 .DS_Store
+.vercel
