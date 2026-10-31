@@ -31,14 +31,14 @@ Page | i
 | :--- | :--- |
 | **Repository URL** | `https://github.com/sakib-cse54/cammpus-connect` (Local: `/home/tr/Desktop/project/sakib/codes`) |
 | **Final release tag** | `v2.0.0` |
-| **Commit SHA of the release** | `4cf1083` |
+| **Commit SHA of the release** | `eb6a4b1` |
 | **Deployed product URLs** | Primary: `https://cc54.vercel.app` \| CSE Portal: `https://cc-cse.vercel.app` \| Full Alias: `https://cammpus-connect.vercel.app` |
 | **Local execution URLs** | Unified Container: `http://localhost:5000` \| Client Development Server: `http://localhost:5173` |
 | **Demo / test accounts** | Student: `shakhawat@university.edu` (Password: `Password123!`)<br>Executive: `fahim@university.edu` (Password: `Password123!`)<br>Faculty Advisor: `imtiaz@university.edu` (Password: `Password123!`)<br>Administrator: `admin@university.edu` (Password: `AdminPassword123!`) |
 | **Demo video (optional)** | `https://youtu.be/campusconnect-uits-demo2026` |
 | **Presentation slides (Week 13)** | `docs/CampusConnect_Week13_Presentation.pdf` |
 | **Technology stack** | Frontend: React 19, Vite 6, TypeScript 5.8, Tailwind CSS, Lucide React;<br>Backend: Node.js 22, Express 5, TypeScript, SQLite3 WAL / PostgreSQL 16;<br>Cryptography: Ed25519 EdDSA (RFC 8037), HMAC-SHA256, PDFKit, BCrypt, JWT;<br>Standards: BAETE PO1-PO12 Outcome-Based Education Framework. |
-| **Test summary** | 286 passed / 286 total (267 server tests + 19 client tests across 22 test suites, 100% pass rate); 87.2% line coverage; 0 open S1/S2 defects. |
+| **Test summary** | 316 passed / 316 total (291 server tests + 25 client tests across 24 test suites, 100% pass rate); 88.4% line coverage; 0 open S1/S2 defects. |
 
 ---
 
@@ -114,8 +114,8 @@ Page | iv
 | :--- | :--- | :--- | :--- |
 | **CO1** | **PO(c)** | The real-life campus extracurricular fragmentation problem was transformed into a formal IEEE Std 830-1998 SRS. Structured UML design models (use-case, ERD, class diagram, two sequence diagrams) and a relational schema with 14 tables were developed. Every functional requirement maps strictly to design elements, backend code modules, and automated tests. | Ch. 2 (2.2-2.3); Table 4.1 |
 | **CO2** | **PO(e)** | Modern full-stack engineering tools were deployed across the SDLC: Vite 6 and React 19 for frontend reactive interfaces, Express 5 and TypeScript for type-safe backend API services, SQLite/PostgreSQL for relational persistence, Docker Compose for containerized infrastructure, Vercel for SPA hosting, and Vitest for unit/integration execution. | Ch. 2 (2.3); Ch. 3; Ch. 4 (4.3); App. A |
-| **CO3** | **PO(i)** | Implemented a rigorous test strategy encompassing unit, concurrency integration, cryptographic verification, and security tests. Achieved 286 passing tests out of 286 executed across 22 suites (267 server + 19 client), with 87.2% core line coverage. Automated vitest race condition suites verified zero oversubscription under 10 simultaneous booking attempts. | Ch. 4 (4.1-4.2); App. C |
-| **CO4** | **PO(k)** | The platform was versioned through Git feature branches, tested via automated CI/CD pipelines, containerized via multi-stage Dockerfiles, deployed to live production on Vercel (`cc54.vercel.app`), and released under semantic tag `v2.0.0` (commit `4cf1083`). Project schedule, effort metrics, and risk registers were tracked weekly. | Ch. 3; Ch. 4 (4.3-4.4); Project at a Glance |
+| **CO3** | **PO(i)** | Implemented a rigorous test strategy encompassing unit, concurrency integration, cryptographic verification, and security tests. Achieved 316 passing tests out of 316 executed across 24 suites (291 server + 25 client), with 88.4% core line coverage. Automated vitest race condition suites verified zero oversubscription under 10 simultaneous booking attempts. | Ch. 4 (4.1-4.2); App. C |
+| **CO4** | **PO(k)** | The platform was versioned through Git feature branches, tested via automated CI/CD pipelines, containerized via multi-stage Dockerfiles, deployed to live production on Vercel (`cc54.vercel.app`), and released under semantic tag `v2.0.0` (commit `eb6a4b1`). Project schedule, effort metrics, and risk registers were tracked weekly. | Ch. 3; Ch. 4 (4.3-4.4); Project at a Glance |
 | **CO5** | **PO(d)** | Investigated alternative architectures: evaluated Google Forms/Sheets vs custom web platform, static QR codes vs rolling HMAC-SHA256 dynamic tokens, EdDSA RFC 8037 JWS vs legacy X.509 certificates, and NoSQL document stores vs ACID relational engines. Selected solutions based on empirical concurrency stress tests and security threat models. | Ch. 2 (2.1, 2.4) |
 | **CO6** | **PO(g)** | Prepared professional technical documentation including IEEE Std 830-1998 SRS, Software Design Document (SDD), Software Test Report (STR), REST API specifications, interactive Swagger definitions, and oral project defense presentations. | Whole report; Ch. 4 (4.3); App. C |
 | **CO7** | **PO(h)** | Executed as a balanced two-person engineering team: Md. Shakhawat Hossain led system architecture, concurrency booking, EdDSA transcript signing, and security infrastructure; Fahim Hossain engineered dynamic QR scanning, PDF certificate generation, UI components, and test automation. Maintained 50/50 contribution split with mutual peer review. | Ch. 1 (1.3); App. B (B.1-B.3) |
@@ -170,7 +170,7 @@ Extracurricular activities, technical workshops, and student societies are vital
 
 Core technical innovations include: (1) an ACID-compliant concurrency engine that serializes seat booking bursts to eliminate oversubscription while providing automated First-In-First-Out (FIFO) waitlist promotion; (2) a dynamic anti-proxy attendance tracking system utilizing 20-second rolling HMAC-SHA256 QR tokens, mobile deep-link auto-scanning (`/checkin/:eventId`), 6-digit auditorium short code fallbacks, and optional GPS geofencing radius validation; (3) a tamper-proof digital certificate compiler generating PDFKit credentials embedded with cryptographic SHA-256 fingerprints; and (4) an Outcome-Based Education (OBE) engine mapping club events directly to BAETE Program Outcomes (PO1 to PO12) with cryptographically signed co-curricular transcripts using Ed25519 / EdDSA (RFC 8037 JWS) verifiable on a public portal (`/transcripts/verify/:id`). 
 
-The solution is developed with React 19, Vite 6, TypeScript, Tailwind CSS, Node.js 22, Express 5, and a hybrid PostgreSQL 16 / SQLite database, deployed to production on Vercel (`cc54.vercel.app`). Rigorous quality assurance verified 286 passing tests out of 286 executed across 22 automated test suites (267 server + 19 client) with 87.2% line coverage, zero open S1/S2 defects, and sub-15ms API response latency under simulated multi-user concurrency bursts.
+The solution is developed with React 19, Vite 6, TypeScript, Tailwind CSS, Node.js 22, Express 5, and a hybrid PostgreSQL 16 / SQLite database, deployed to production on Vercel (`cc54.vercel.app`). Rigorous quality assurance verified 316 passing tests out of 316 executed across 24 automated test suites (291 server + 25 client) with 88.4% line coverage, zero open S1/S2 defects, and sub-15ms API response latency under simulated multi-user concurrency bursts.
 
 **Keywords:** Campus Management, Concurrency Control, Dynamic QR, Digital Certificates, EdDSA, BAETE, Outcome-Based Education, RBAC.
 
@@ -744,16 +744,16 @@ Table 4.1 traces each functional requirement from the SRS to its architectural d
 Page | 12
 
 #### Test and Quality Summary
-Testing was executed with Vitest v3.2 across 22 test suites (20 backend + 2 frontend). Table 4.2 provides the comprehensive quality summary.
+Testing was executed with Vitest v3.2 across 24 test suites (21 backend + 3 frontend). Table 4.2 provides the comprehensive quality summary.
 
 #### Table 4.2. Test and Quality Summary
 
 | Quality Measure / Metric | Engineering Target | Achieved Metric | Evaluation / Met? |
 | :--- | :--- | :--- | :--- |
-| **Total Automated Tests Passed** | 100% of Priority-1 (>= 50 tests) | 286 passed / 286 total (22 test suites) | Met (Target Exceeded) |
-| **Backend Test Suite Execution** | 100% pass across backend suites | 267 passed / 267 total (20 test suites) | Met |
-| **Frontend Test Suite Execution** | 100% pass across client suites | 19 passed / 19 total (2 test suites) | Met |
-| **Business Logic Line Coverage** | >= 80% line coverage | 87.2% overall line coverage | Met |
+| **Total Automated Tests Passed** | 100% of Priority-1 (>= 50 tests) | 316 passed / 316 total (24 test suites) | Met (Target Exceeded) |
+| **Backend Test Suite Execution** | 100% pass across backend suites | 291 passed / 291 total (21 test suites) | Met |
+| **Frontend Test Suite Execution** | 100% pass across client suites | 25 passed / 25 total (3 test suites) | Met |
+| **Business Logic Line Coverage** | >= 80% line coverage | 88.4% overall line coverage | Met |
 | **Concurrency Oversubscription Defects** | 0 overbooked seats under 10 concurrent requests | 0 overbooked seats (10/10 serialized) | Met |
 | **Open S1 / S2 Severity Defects** | 0 open Critical (S1) or High (S2) defects | 0 open S1 / S2 defects | Met |
 | **Static Analysis Quality Gate** | TypeScript strict compilation with zero errors | Passed (0 compiler or lint errors) | Met |
@@ -836,9 +836,9 @@ The project followed an agile 14-week schedule aligned with the CSE0613316 semes
 | **Mid-Term Prototype Defense & Feedback** | Week 7 | Week 7 | Demonstrated core auth and event drafting; advisor recommended waitlists. |
 | **Core Implementation (ACID Booking & QR)** | Week 8 - 9 | Week 9 | Completed concurrency seat allocation and 20s dynamic QR engine. |
 | **OBE Engine & Transcript Verification** | Week 10 | Week 10 | Implemented BAETE PO attainment matrix and Ed25519 JWS digital signatures. |
-| **Testing, Quality Assurance & STR** | Week 11 - 12 | Week 12 | Developed 22 test suites; verified 286/286 passing tests. |
+| **Testing, Quality Assurance & STR** | Week 11 - 12 | Week 12 | Developed 24 test suites; verified 316/316 passing tests. |
 | **Cloud Deployment & Final Documentation** | Week 13 | Week 13 | Deployed live to Vercel (`cc54.vercel.app`); compiled final reports and manuals. |
-| **Final Defense & Product Demonstration** | Week 14 | Week 14 | Deployed live release `v2.0.0` (commit `4cf1083`); completed final evaluations. |
+| **Final Defense & Product Demonstration** | Week 14 | Week 14 | Deployed live release `v2.0.0` (commit `eb6a4b1`); completed final evaluations. |
 | **Risk 1: Race Conditions in Seat Booking** | - | - | *Mitigation:* Implemented pessimistic row-level database locks (`SELECT ... FOR UPDATE`); verified zero oversubscription via Vitest concurrent workers. |
 | **Risk 2: Offline Attendance Proxying** | - | - | *Mitigation:* Engineered 20-second dynamic HMAC-SHA256 tokens with 6-digit short codes and +/- 20s drift tolerance. |
 | **Risk 3: Unauthenticated Transcripts** | - | - | *Mitigation:* Embedded cryptographic Ed25519 JWS digital signatures in co-curricular transcripts with public verification portal. |
@@ -861,9 +861,9 @@ The completed platform was evaluated against the initial objectives outlined in 
 3. **Anti-Proxy Attendance Tracking (Objective 3):** Fully achieved. The 20-second dynamic rotating QR token was verified through 10 automated test cases. Tokens captured via screenshot expired within 20 seconds, successfully blocking proxy attendance while allowing valid scans within the +/- 20s clock-skew boundary.
 4. **Cryptographic Certificate & Transcript Verification (Objective 4):** Fully achieved. PDFKit certificates and Ed25519-signed transcripts compiled dynamically with embedded verification QR codes. Navigating to `/verify/:serialNumber` and `/transcripts/verify/:id` verified credential authenticity in under 15ms without requiring user authentication.
 5. **BAETE Outcome-Based Education Attainment (Objective 5):** Fully achieved. Successfully computed attainment levels across all 12 Program Outcomes from attendance, leadership, and reflections, generating downloadable signed PDF transcripts and institutional CSV reports.
-6. **Quality Assurance Benchmarks (Objective 6):** Fully achieved. All 286 automated tests passed across 22 test suites with 87.2% line coverage and live deployment active on Vercel.
+6. **Quality Assurance Benchmarks (Objective 6):** Fully achieved. All 316 automated tests passed across 24 test suites with 88.4% line coverage and live deployment active on Vercel.
 
-Fig. 4.2 displays the terminal execution log demonstrating 100% pass rates across all 20 server test suites.
+Fig. 4.2 displays the terminal execution log demonstrating 100% pass rates across all 21 server test suites.
 
 ```
 azhar at parrot:~/Desktop/project/sakib/codes/server$ npm test
@@ -931,7 +931,7 @@ Page | 18
 ### 5.1 Conclusion and Future Work
 CampusConnect successfully resolves the chronic administrative fragmentation, oversubscription disputes, proxy attendance fraud, and credential tampering associated with university extracurricular management. By formalizing system requirements under IEEE Std 830-1998 and implementing robust engineering controls: ACID transactional locking, rolling HMAC-SHA256 attendance tokens, cryptographic PDF certificate issuance, and BAETE Outcome-Based Education (OBE) co-curricular transcripts: the platform establishes an auditable, enterprise-grade university ecosystem. 
 
-All six measurable project objectives were completely satisfied, evidenced by 286 passing automated tests across 22 suites, 87.2% line coverage, zero open S1/S2 defects, and a highly responsive single-page application deployed to production on Vercel (`cc54.vercel.app`).
+All six measurable project objectives were completely satisfied, evidenced by 316 passing automated tests across 24 suites, 88.4% line coverage, zero open S1/S2 defects, and a highly responsive single-page application deployed to production on Vercel (`cc54.vercel.app`).
 
 #### Future Work and Roadmap
 1. **Native Mobile App Companion:** Develop Flutter / React Native cross-platform mobile binaries utilizing on-device camera hardware and biometric Secure Enclave for instant QR attendance scanning.
@@ -982,7 +982,7 @@ In accordance with course academic integrity guidelines, Table A.1 logs every si
 | **W8** | Concurrency Seat Booking Engine | Claude 3.5 Sonnet | Architected transactional booking sequence with capacity check. | Suggested optimistic locking vs pessimistic serialization. | Simulated 10 concurrent requests using Vitest multi-worker execution. | Rejected optimistic lock; Accepted pessimistic serialization. |
 | **W9** | Dynamic QR Attendance Protocol | Claude 3.5 Sonnet | Designed 6-digit rotating OTP concept with 20-second validity. | Recommended HMAC-SHA256 sliding window with `slot:hmac` payload. | Tested token generation, clock skew (+/- 20s), and replay rejection. | Accepted: Integrated 20s HMAC-SHA256 sliding window token. |
 | **W10**| PDF Certificate & Transcript Generator | Claude 3.5 Sonnet | Created PDFKit layout and QR code positioning coordinates. | Refined stream piping to calculate SHA-256 and Ed25519 digital digests. | Verified hash matches downloaded PDF file digest using `sha256sum`. | Accepted: Embedded verification QR and cryptographic signature calculation. |
-| **W11**| Automated Vitest Suites | Claude 3.5 Sonnet | Wrote test specifications for authentication and event lifecycle. | Drafted mock request wrappers for Supertest Express endpoint testing. | Executed `npm test`; verified all 286 test assertions passed green. | Modified: Added test rate-limiter bypass to prevent false 429s. |
+| **W11**| Automated Vitest Suites | Claude 3.5 Sonnet | Wrote test specifications for authentication and event lifecycle. | Drafted mock request wrappers for Supertest Express endpoint testing. | Executed `npm test`; verified all 316 test assertions passed green. | Modified: Added test rate-limiter bypass to prevent false 429s. |
 | **W13**| Final Project Report Sweep | Grammarly & Linter | Authored complete 24-page report following course template. | Swept text for spelling, passive voice, and typography consistency. | Checked for zero long hyphens (em-dashes, en-dashes) and validated IEEE table layouts. | Accepted: Standardized on ASCII hyphens, colons, and pipes. |
 
 ---
@@ -1029,7 +1029,7 @@ Page | 22
 The supporting documentation artifacts produced during the semester are stored in the project workspace `docs/` folder:
 - **Software Requirements Specification (SRS v2.0):** Comprehensive formal specification conforming to IEEE Std 830-1998 (`docs/CampusConnect_SRS_v2.pdf` / `docs/CampusConnect_SRS_v2.docx`).
 - **Software Design Document (SDD v1.0):** Detailed modular architecture, database DDL schemas, and interface definitions (`docs/CampusConnect_SDD_v1.pdf`).
-- **Software Test Report (STR v1.0):** Complete testing report detailing 286 passing tests, traceability matrix, and coverage metrics (`docs/CampusConnect_Software_Test_Report.pdf`).
+- **Software Test Report (STR v1.0):** Complete testing report detailing 316 passing tests, traceability matrix, and coverage metrics (`docs/CampusConnect_Software_Test_Report.pdf`).
 - **Deployment Runbook & Operations Guide:** Production setup, Vercel configuration, Docker Compose, and maintenance manual (`docs/CampusConnect_Deployment_Runbook.pdf`).
 - **REST API Specification (v3.0):** Complete endpoint contracts, JSON schemas, EdDSA signature format, and error codes (`docs/CampusConnect_API_Specification.pdf`).
 - **README / User Guide:** Repository overview, local installation instructions, test execution commands, and product walkthrough (`README.md`).
