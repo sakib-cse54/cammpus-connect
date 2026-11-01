@@ -20,6 +20,7 @@ import { EmptyState } from '../components/ui/EmptyState.js';
 import { useToast } from '../components/ui/Toast.js';
 import { formatDateTime } from '../lib/utils.js';
 import { fromDhakaInputValue } from '../lib/dateBd.js';
+import { downloadFromApi } from '../lib/download.js';
 
 export const ExecutiveDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -723,14 +724,14 @@ export const ExecutiveDashboard: React.FC = () => {
           <div className="space-y-4">
             {/* Top Toolbar */}
             <div className="flex items-center justify-between">
-              <a
-                href={`/api/v1/events/${selectedRosterEvent.id}/roster?format=csv`}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonClasses({ variant: 'secondary', size: 'sm' })}
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Download className="w-3.5 h-3.5" />}
+                onClick={() => downloadFromApi(`/events/${selectedRosterEvent.id}/roster?format=csv`, `roster-${selectedRosterEvent.id}.csv`).catch((err: Error) => toast.error(err.message || 'Export failed'))}
               >
-                <Download className="w-3.5 h-3.5" /> Export CSV
-              </a>
+                Export CSV
+              </Button>
             </div>
 
             {/* Manual Check-in Form */}

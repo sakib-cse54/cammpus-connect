@@ -10,9 +10,14 @@ import { Badge } from '../components/ui/Badge.js';
 import { Button, buttonClasses } from '../components/ui/Button.js';
 import { Alert } from '../components/ui/Alert.js';
 import { formatDate, copyToClipboard } from '../lib/utils.js';
+import { downloadFromApi } from '../lib/download.js';
+import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../components/ui/Toast.js';
 
 export const PublicVerify: React.FC = () => {
   const { serialNumber: urlSerial } = useParams<{ serialNumber?: string }>();
+  const { user } = useAuth();
+  const toast = useToast();
 
   const [serialInput, setSerialInput] = useState(urlSerial || '');
   const [certData, setCertData] = useState<any>(null);
@@ -145,7 +150,7 @@ export const PublicVerify: React.FC = () => {
                     className="w-14 h-14 rounded-xl object-cover shadow-md ring-2 ring-emerald-400 shrink-0"
                   />
                   <div>
-                    <h2 className="text-sm font-boldr text-emerald-950">
+                    <h2 className="text-sm font-bold text-emerald-950">
                       Verified Authentic Credential
                     </h2>
                     <p className="text-xs text-slate-500 font-medium">
@@ -154,15 +159,15 @@ export const PublicVerify: React.FC = () => {
                   </div>
                 </div>
 
-                <a
-                  href={`/api/v1/certificates/download/${certData.serial_number}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonClasses({ size: 'sm' })}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download Official PDF</span>
-                </a>
+                {user && (
+                  <Button
+                    size="sm"
+                    leftIcon={<Download className="w-3.5 h-3.5" />}
+                    onClick={() => downloadFromApi(`/certificates/download/${certData.serial_number}`, `${certData.serial_number}.pdf`).catch((err: Error) => toast.error(err.message || 'Download failed'))}
+                  >
+                    Download PDF
+                  </Button>
+                )}
               </div>
 
               {/* Certificate Details Grid */}

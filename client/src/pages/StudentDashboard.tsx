@@ -13,6 +13,7 @@ import { RegistrationItem, CertificateItem, NotificationItem, TranscriptData } f
 import { Badge } from '../components/ui/Badge.js';
 import { checkInPayload } from '../lib/checkIn.js';
 import { Button, buttonClasses } from '../components/ui/Button.js';
+import { downloadFromApi } from '../lib/download.js';
 import { StatCard } from '../components/ui/StatCard.js';
 import { Tabs } from '../components/ui/Tabs.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
@@ -474,15 +475,15 @@ export const StudentDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 pt-2">
-                    <a
-                      href={`/api/v1/certificates/download/${cert.serial_number}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={buttonClasses({ variant: 'primary', size: 'sm', className: 'flex-1' })}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="flex-1"
+                      leftIcon={<Download className="w-3.5 h-3.5" />}
+                      onClick={() => downloadFromApi(`/certificates/download/${cert.serial_number}`, `${cert.serial_number}.pdf`).catch((err: Error) => toast.error(err.message || 'Download failed'))}
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download PDF</span>
-                    </a>
+                      Download PDF
+                    </Button>
                     <Link
                       to={`/verify/${cert.serial_number}`}
                       className={buttonClasses({ variant: 'outline', size: 'sm' })}

@@ -13,6 +13,7 @@ import { DynamicQrModal } from '../components/DynamicQrModal.js';
 import { Badge } from '../components/ui/Badge.js';
 import { checkInPayload } from '../lib/checkIn.js';
 import { Button, buttonClasses } from '../components/ui/Button.js';
+import { downloadFromApi } from '../lib/download.js';
 import { Alert } from '../components/ui/Alert.js';
 import { Modal } from '../components/ui/Modal.js';
 import { useToast } from '../components/ui/Toast.js';
@@ -166,7 +167,7 @@ export const EventDetails: React.FC = () => {
         }
       } catch (issueErr: any) {
         // Ineligible attendees get a 4xx with a reason; show it instead of hiding it.
-        toast.info?.(issueErr.message || 'Certificate not issued yet.') ?? toast.error(issueErr.message || 'Certificate not issued yet.');
+        toast.warning(issueErr.message || 'Your certificate could not be issued yet.');
       }
 
       await fetchEventData();
@@ -383,21 +384,20 @@ export const EventDetails: React.FC = () => {
                       className="w-14 h-14 rounded-xl object-cover shadow-sm ring-1 ring-emerald-300 shrink-0"
                     />
                     <div className="space-y-0.5">
-                      <p className="text-[11px] font-boldr text-emerald-900">Authentic Credential Issued</p>
+                      <p className="text-[11px] font-bold text-emerald-900">Authentic Credential Issued</p>
                       <p className="text-sm font-mono font-bold text-slate-900">Serial: {certificateSerial}</p>
                       <p className="text-xs text-emerald-700">SHA-256 Digitally Signed PDF</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <a
-                      href={`/api/v1/certificates/download/${certificateSerial}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={buttonClasses({ variant: 'success', size: 'sm' })}
+                    <Button
+                      variant="success"
+                      size="sm"
+                      leftIcon={<Download className="w-3.5 h-3.5" />}
+                      onClick={() => downloadFromApi(`/certificates/download/${certificateSerial}`, `${certificateSerial}.pdf`).catch((err: Error) => toast.error(err.message || 'Download failed'))}
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download PDF</span>
-                    </a>
+                      Download PDF
+                    </Button>
                     <Link
                       to={`/verify/${certificateSerial}`}
                       className={buttonClasses({ variant: 'outline', size: 'sm' })}
