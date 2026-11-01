@@ -4,6 +4,7 @@ import { app } from '../src/index.js';
 import { db } from '../src/db/index.js';
 import { seedDatabase } from '../src/db/seed.js';
 import { dhakaWallTime } from '../src/utils/time.js';
+import { bearer } from './helpers.js';
 
 /** Inserts (or resets) a capacity-1 published event scheduled relative to now. */
 async function upsertCapacityOneEvent(id: string, title: string, venue: string, createdBy: string, dayOffset: number): Promise<void> {
@@ -186,5 +187,29 @@ describe('Concurrency-Safe Event Registration and Waitlist Engine', () => {
       [concurrentEventId]
     );
     expect(finalEvent?.registered_count).toBe(1);
+  });
+
+  it('gives every concurrent waitlist join a distinct queue position', async () => {
+    const waitlistEventId = 'event-stress-waitlist';
+    await upsertCapacityOneEvent(waitlistEventId, 'Waitlist Race Test', 'Lab 102', 'user-campus-admin', 27);
+
+    const register = (name: Parameters<typeof bearer>[0]) =>
+      request(app).post(`/api/v1/events/${waitlistEventId}/register`).set(...bearer(name));
+
+    const first = await register('rahim');
+    expect(first.body.status).toBe('CONFIRMED');
+
+    const joiners = ['ayesha', 'nusrat', 'tanvir', 'sadia', 'fahim'] as const;
+    const results = await Promise.all(joiners.map((name) => register(name)));
+
+    expect(results.map((r) => r.body.status)).toEqual(joiners.map(() => 'WAITLISTED'));
+    const positions = results.map((r) => r.body.waitlistPosition as number).sort((a, b) => a - b);
+    expect(positions).toEqual([1, 2, 3, 4, 5]);
+
+    const stored = await db.query<{ waitlist_position: number }>(
+      `SELECT waitlist_position FROM registrations WHERE event_id = $1 AND status = 'WAITLISTED' ORDER BY waitlist_position`,
+      [waitlistEventId]
+    );
+    expect(stored.map((r) => Number(r.waitlist_position))).toEqual([1, 2, 3, 4, 5]);
   });
 });

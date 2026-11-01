@@ -52,7 +52,10 @@ function parseIssues(raw: unknown): ApiIssue[] {
 /** Builds an ApiError from a parsed JSON body (server envelope: error, code, issues, requestId). */
 export function toApiError(status: number, body: unknown, headerRequestId: string | null): ApiError {
   const b = isRecord(body) ? body : {};
-  const message = typeof b.error === 'string' ? b.error : typeof b.message === 'string' ? b.message : `Request failed with status ${status}`;
+  let message = typeof b.error === 'string' ? b.error : typeof b.message === 'string' ? b.message : `Request failed with status ${status}`;
+  if (status === 405) {
+    message = 'Backend API endpoint not found (HTTP 405 Method Not Allowed). The frontend is hosted on a static server without an active backend. Please start the local backend server (npm run dev) or set VITE_API_URL to point to a live API.';
+  }
   return new ApiError({
     status,
     message,

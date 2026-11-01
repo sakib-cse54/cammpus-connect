@@ -27,6 +27,9 @@ const rawSchema = z.object({
   CLIENT_URL: z.string().url().default('http://localhost:5173'),
   PUBLIC_URL: z.string().url().optional().or(z.literal('').transform(() => undefined)),
   DATABASE_URL: optionalString,
+  DATABASE_SSL: z.enum(['disable', 'require', 'verify']).optional().or(z.literal('').transform(() => undefined)),
+  DATABASE_SSL_CA: optionalString,
+  DATABASE_SCHEMA: z.string().regex(/^[a-z_][a-z0-9_]{0,62}$/i, 'letters, digits and underscores only').optional().or(z.literal('').transform(() => undefined)),
   SQLITE_DB_PATH: optionalString,
   CERT_STORAGE_DIR: optionalString,
   JWT_SECRET: optionalString,
@@ -44,6 +47,12 @@ export interface Env {
   readonly CLIENT_URL: string;
   readonly PUBLIC_URL: string | undefined;
   readonly DATABASE_URL: string | undefined;
+  /** disable: plain TCP. require: encrypted, certificate not checked. verify: encrypted and checked. Default: require for remote hosts, disable for localhost. */
+  readonly DATABASE_SSL: 'disable' | 'require' | 'verify' | undefined;
+  /** Path to a PEM CA bundle used when DATABASE_SSL=verify (e.g. the Supabase root certificate). */
+  readonly DATABASE_SSL_CA: string | undefined;
+  /** Optional PostgreSQL schema to keep the app's tables in (default: the connection's search_path). */
+  readonly DATABASE_SCHEMA: string | undefined;
   readonly SQLITE_DB_PATH: string;
   readonly CERT_STORAGE_DIR: string;
   readonly JWT_SECRET: string;
@@ -123,6 +132,9 @@ export function loadEnv(source: NodeJS.ProcessEnv): Env {
     CLIENT_URL: raw.CLIENT_URL,
     PUBLIC_URL: raw.PUBLIC_URL,
     DATABASE_URL: raw.DATABASE_URL,
+    DATABASE_SSL: raw.DATABASE_SSL,
+    DATABASE_SSL_CA: raw.DATABASE_SSL_CA ? fromServerRoot(raw.DATABASE_SSL_CA) : undefined,
+    DATABASE_SCHEMA: raw.DATABASE_SCHEMA,
     SQLITE_DB_PATH: raw.SQLITE_DB_PATH ? fromServerRoot(raw.SQLITE_DB_PATH) : defaultDbPath(raw.NODE_ENV),
     CERT_STORAGE_DIR: fromServerRoot(raw.CERT_STORAGE_DIR ?? path.join('storage', 'certificates')),
     ...secrets,

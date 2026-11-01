@@ -1,0 +1,12 @@
+node_modules
+dist
+storage/certificates/*
+!storage/certificates/.gitkeep
+storage/keys/*
+!storage/keys/.gitkeep
+.env
+.env.*
+*.db
+*.sqlite
+coverage
+npm-debug.log*

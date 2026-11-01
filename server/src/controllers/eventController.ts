@@ -83,7 +83,7 @@ export class EventController {
     };
     if (q.category) add('c.category = ?', q.category);
     if (q.club_id) add('e.club_id = ?', q.club_id);
-    if (q.search) add('(e.title LIKE ? OR e.description LIKE ? OR e.venue LIKE ?)', `%${q.search}%`);
+    if (q.search) add('(LOWER(e.title) LIKE LOWER(?) OR LOWER(e.description) LIKE LOWER(?) OR LOWER(e.venue) LIKE LOWER(?))', `%${q.search}%`);
 
     const events = await db.query(`
       SELECT e.*,

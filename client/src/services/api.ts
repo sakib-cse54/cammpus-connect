@@ -3,7 +3,7 @@ import { toApiError } from './apiError.js';
 export { ApiError, isApiError, errorMessage } from './apiError.js';
 export type { ApiIssue } from './apiError.js';
 
-const API_BASE = '/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).replace(/\/$/, '') : '') + '/api/v1';
 const TOKEN_KEY = 'campusconnect_token';
 const DEVICE_KEY = 'campusconnect_device_id';
 export const AUTH_EXPIRED_EVENT = 'campusconnect:auth-expired';

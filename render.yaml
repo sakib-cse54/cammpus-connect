@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: campusconnect-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_SCHEMA
+        value: campusconnect
+      - key: DATABASE_SSL
+        value: require
+      - key: CLIENT_URL
+        value: https://cammpus-connect.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: QR_HMAC_SECRET
+        generateValue: true

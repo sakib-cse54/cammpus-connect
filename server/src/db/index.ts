@@ -1,10 +1,11 @@
 import { AsyncLocalStorage } from 'async_hooks';
+import fs from 'fs';
 import Database from 'better-sqlite3';
 import pg from 'pg';
 import { env } from '../config/env.js';
-import { runSqliteMigrations } from './migrate.js';
+import { runSqliteMigrations, runPostgresMigrations } from './migrate.js';
 
-const { Pool } = pg;
+const { Pool, types: pgTypes } = pg;
 
 export type DbRow = Record<string, unknown>;
 export type DbParams = readonly unknown[];
@@ -13,6 +14,28 @@ export interface DbClient {
   query<T = DbRow>(text: string, params?: DbParams): Promise<T[]>;
   queryOne<T = DbRow>(text: string, params?: DbParams): Promise<T | null>;
   execute(text: string, params?: DbParams): Promise<{ rowCount: number }>;
+}
+
+const PG_INT8 = 20;
+const PG_NUMERIC = 1700;
+
+/** Returns COUNT/SUM (bigint) and AVG (numeric) as JS numbers, matching SQLite's behaviour. */
+const PG_TYPES = {
+  getTypeParser: (oid: number, format?: 'text' | 'binary') =>
+    oid === PG_INT8 || oid === PG_NUMERIC
+      ? (value: string) => Number(value)
+      : pgTypes.getTypeParser(oid, format as 'text')
+};
+
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/** Resolves the pool's TLS settings from DATABASE_SSL (default: encrypt unless the host is local). */
+export function resolvePgSsl(url: string, mode: typeof env.DATABASE_SSL, caPath: string | undefined): pg.PoolConfig['ssl'] {
+  const host = new URL(url).hostname;
+  const effective = mode ?? (LOCAL_HOSTS.has(host) ? 'disable' : 'require');
+  if (effective === 'disable') return false;
+  if (effective === 'verify') return { rejectUnauthorized: true, ...(caPath ? { ca: fs.readFileSync(caPath, 'utf8') } : {}) };
+  return { rejectUnauthorized: false };
 }
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
@@ -77,6 +100,8 @@ function openSqlite(dbPath: string): Database.Database {
 
 class DatabaseManager implements DbClient {
   private readonly pgPool: pg.Pool | null;
+  /** PostgreSQL only: resolves once migrations have run; every query waits on it. */
+  private readonly pgReady: Promise<void> | null;
   private readonly sqlite: SqliteRunner | null;
   private readonly sqliteDb: Database.Database | null;
   /** Tail of the transaction queue; each transaction awaits its predecessor. */
@@ -89,12 +114,33 @@ class DatabaseManager implements DbClient {
   constructor() {
     const dbUrl = env.DATABASE_URL;
     if (dbUrl && dbUrl.startsWith('postgres')) {
-      this.pgPool = new Pool({ connectionString: dbUrl });
+      const pool = new Pool({
+        connectionString: dbUrl,
+        ssl: resolvePgSsl(dbUrl, env.DATABASE_SSL, env.DATABASE_SSL_CA),
+        types: PG_TYPES
+      });
+      if (env.DATABASE_SCHEMA) {
+        // A plain SET works through every Supabase connection type; the `options` startup
+        // parameter does not. pg queues later queries on the client behind this one.
+        const searchPath = `SET search_path TO "${env.DATABASE_SCHEMA}"`;
+        pool.on('connect', (client) => {
+          client.query(searchPath).catch((err: unknown) => console.error('[db] SET search_path failed:', err));
+        });
+      }
+      // An idle client dropped by the server (e.g. a pooler restart) must not crash the process.
+      pool.on('error', (err) => console.error('[db] idle PostgreSQL client error:', err.message));
+      this.pgPool = pool;
+      this.pgReady = runPostgresMigrations(pool, env.DATABASE_SCHEMA).then((applied) => {
+        if (applied.length > 0) console.log(`[db] applied PostgreSQL migrations: ${applied.join(', ')}`);
+      });
+      // Surfaced to callers through ready(); this only prevents an unhandled-rejection crash.
+      this.pgReady.catch((err: unknown) => console.error('[db] PostgreSQL migration failed:', err));
       this.sqliteDb = null;
       this.sqlite = null;
       console.log('Using PostgreSQL database:', dbUrl.split('@')[1] || 'localhost');
     } else {
       this.pgPool = null;
+      this.pgReady = null;
       this.sqliteDb = openSqlite(env.SQLITE_DB_PATH);
       this.sqlite = new SqliteRunner(this.sqliteDb);
     }
@@ -118,8 +164,16 @@ class DatabaseManager implements DbClient {
     return fn(this.sqlite);
   }
 
+  /** Resolves when the database is usable (PostgreSQL migrations applied); rejects if they failed. */
+  public async ready(): Promise<void> {
+    if (this.pgReady) await this.pgReady;
+  }
+
   public async query<T = DbRow>(text: string, params: DbParams = []): Promise<T[]> {
-    if (this.pgPool) return pgClient(this.pgPool).query<T>(text, params);
+    if (this.pgPool) {
+      await this.ready();
+      return pgClient(this.pgPool).query<T>(text, params);
+    }
     return this.withSqlite((r) => r.all<T>(text, params));
   }
 
@@ -129,12 +183,18 @@ class DatabaseManager implements DbClient {
   }
 
   public async execute(text: string, params: DbParams = []): Promise<{ rowCount: number }> {
-    if (this.pgPool) return pgClient(this.pgPool).execute(text, params);
+    if (this.pgPool) {
+      await this.ready();
+      return pgClient(this.pgPool).execute(text, params);
+    }
     return this.withSqlite((r) => r.run(text, params));
   }
 
   public async transaction<T>(callback: (trx: DbClient) => Promise<T>): Promise<T> {
-    if (this.pgPool) return this.pgTransaction(this.pgPool, callback);
+    if (this.pgPool) {
+      await this.ready();
+      return this.pgTransaction(this.pgPool, callback);
+    }
     if (this.sqlite) return this.sqliteTransaction(this.sqlite, callback);
     throw new Error('Database not initialized');
   }
@@ -200,7 +260,10 @@ class DatabaseManager implements DbClient {
   }
 
   public async close(): Promise<void> {
-    if (this.pgPool) await this.pgPool.end();
+    if (this.pgPool) {
+      await this.pgReady?.catch(() => undefined);
+      await this.pgPool.end();
+    }
     if (this.sqliteDb) this.sqliteDb.close();
   }
 }

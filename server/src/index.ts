@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
+import { db } from './db/index.js';
 import apiRouter from './routes/index.js';
 import { requestId, errorHandler, asyncHandler } from './utils/http.js';
 import { CertificateController } from './controllers/certificateController.js';
@@ -21,8 +22,27 @@ app.use(helmet({
   contentSecurityPolicy: false // Allows inline rendering of certificates and QR codes
 }));
 
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'https://cammpus-connect.vercel.app',
+  'https://cc54.vercel.app',
+  'https://cc-cse.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5000'
+].filter(Boolean);
+
 app.use(cors({
-  origin: env.CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/cammpus-connect.*\.vercel\.app$/.test(origin) ||
+      /^https:\/\/cc54.*\.vercel\.app$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   credentials: true
 }));
 
@@ -66,8 +86,16 @@ if (fs.existsSync(clientDist)) {
 app.use(errorHandler);
 
 if (env.NODE_ENV !== 'test') {
-  app.listen(env.PORT, () => {
-    console.log(`CampusConnect Server running on port ${env.PORT}`);
-    console.log(`API Base: http://localhost:${env.PORT}/api/v1`);
-  });
+  // Refuse to serve traffic until the schema is in place (PostgreSQL migrates asynchronously).
+  db.ready()
+    .then(() => {
+      app.listen(env.PORT, () => {
+        console.log(`CampusConnect Server running on port ${env.PORT}`);
+        console.log(`API Base: http://localhost:${env.PORT}/api/v1`);
+      });
+    })
+    .catch((err: unknown) => {
+      console.error('[boot] database is not ready, exiting:', err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
 }

@@ -158,10 +158,12 @@ def main():
         ("output_pass", " ✓ test/attainment.test.ts (20 tests) 11ms"),
         ("output_pass", " ✓ test/eventLifecycle.test.ts (53 tests) 8ms"),
         ("output_pass", " ✓ test/scheduleRules.test.ts (21 tests) 8ms"),
+        ("output_pass", " ✓ test/reviewFixes.test.ts (15 tests) 777ms"),
+        ("output_pass", " ✓ test/feedbackAndHygiene.test.ts (24 tests) 719ms"),
         ("output", ""),
-        ("output_pass", " Test Files  20 passed (20)"),
-        ("output_pass", "      Tests  267 passed (267)"),
-        ("output_dim", "   Duration  25.67s (transform 662ms, setup 179ms, collect 6.84s, tests 13.95s)"),
+        ("output_pass", " Test Files  21 passed (21)"),
+        ("output_pass", "      Tests  291 passed (291)"),
+        ("output_dim", "   Duration  25.25s (transform 668ms, setup 169ms, collect 6.83s, tests 13.63s)"),
         ("output", ""),
         ("prompt_end", "~/Desktop/project/sakib/codes/server")
     ]

@@ -48,6 +48,11 @@ async function upsertRegistration(
   trx: DbClient, eventId: string, userId: string, status: 'CONFIRMED' | 'WAITLISTED'
 ): Promise<{ id: string; ticketCode: string; position: number | null }> {
   const ticketCode = `TCK-${uuidv4().substring(0, 8).toUpperCase()}`;
+  if (status === 'WAITLISTED') {
+    // Row lock held until commit: serialises waitlist joins per event so MAX()+1 cannot hand
+    // two people the same position on PostgreSQL (SQLite already serialises transactions).
+    await trx.execute('UPDATE events SET registered_count = registered_count WHERE id = $1', [eventId]);
+  }
   const maxRow = status === 'WAITLISTED'
     ? await trx.queryOne<{ max_pos: number | null }>(
       `SELECT MAX(waitlist_position) as max_pos FROM registrations WHERE event_id = $1 AND status = 'WAITLISTED'`,

@@ -1,7 +1,5 @@
 # CampusConnect: Centralized University Club, Event & Activity Management Platform with ACID Concurrency, Cryptographic Verification and Outcome-Based Education (OBE) Attainment
 
-(Times New Roman, 16 pt, bold)
-
 By
 1. Md. Shakhawat Hossain [ID: 0432320005101009]
 2. Fahim Hossain [ID: 0432320005101007]
@@ -25,13 +23,11 @@ October, 2026
 
 ## Project at a Glance
 
-Page | i
-
 | Item | Details |
 | :--- | :--- |
 | **Repository URL** | `https://github.com/sakib-cse54/cammpus-connect` (Local: `/home/tr/Desktop/project/sakib/codes`) |
 | **Final release tag** | `v2.0.0` |
-| **Commit SHA of the release** | `eb6a4b1` |
+| **Commit SHA of the release** | `7ea71ab` |
 | **Deployed product URLs** | Primary: `https://cc54.vercel.app` \| CSE Portal: `https://cc-cse.vercel.app` \| Full Alias: `https://cammpus-connect.vercel.app` |
 | **Local execution URLs** | Unified Container: `http://localhost:5000` \| Client Development Server: `http://localhost:5173` |
 | **Demo / test accounts** | Student: `shakhawat@university.edu` (Password: `Password123!`)<br>Executive: `fahim@university.edu` (Password: `Password123!`)<br>Faculty Advisor: `imtiaz@university.edu` (Password: `Password123!`)<br>Administrator: `admin@university.edu` (Password: `AdminPassword123!`) |
@@ -43,8 +39,6 @@ Page | i
 ---
 
 ## AI Tool Use Acknowledgement
-
-Page | ii
 
 We acknowledge that the assistant tools listed below were used in this project. In every case we first produced our own solution, used the tool only to refine, explore or verify it, and checked every accepted output ourselves. We understand all submitted work, including every tool-assisted part, and can explain and reproduce it. Each use is recorded in detail in the Tool Usage Log (Appendix A).
 
@@ -70,8 +64,6 @@ We acknowledge that the assistant tools listed below were used in this project. 
 
 ## Justification Report
 
-Page | iii
-
 Below is the CO-PO Mapping and Complex Engineering Problem (CEP) Justification Report for the project titled "CampusConnect: Centralized University Club, Event & Activity Management Platform", developed for the course CSE0613316 Software Project Design and Development (Autumn 2026).
 
 ### CO-PO Mapping
@@ -90,8 +82,6 @@ Below is the CO-PO Mapping and Complex Engineering Problem (CEP) Justification R
 *Domain: C = Cognitive (Bloom L1-L6), P = Psychomotor (P1-P7), A = Affective (A1-A5). KP = Knowledge Profile (K1-K8). CP = Complex Problem attributes (WP1-WP7). CA = Complex Activity attributes (EA1-EA5).*
 
 ---
-
-Page | iv
 
 ### Mapping of COs with Program Outcomes (POs)
 
@@ -115,15 +105,13 @@ Page | iv
 | **CO1** | **PO(c)** | The real-life campus extracurricular fragmentation problem was transformed into a formal IEEE Std 830-1998 SRS. Structured UML design models (use-case, ERD, class diagram, two sequence diagrams) and a relational schema with 14 tables were developed. Every functional requirement maps strictly to design elements, backend code modules, and automated tests. | Ch. 2 (2.2-2.3); Table 4.1 |
 | **CO2** | **PO(e)** | Modern full-stack engineering tools were deployed across the SDLC: Vite 6 and React 19 for frontend reactive interfaces, Express 5 and TypeScript for type-safe backend API services, SQLite/PostgreSQL for relational persistence, Docker Compose for containerized infrastructure, Vercel for SPA hosting, and Vitest for unit/integration execution. | Ch. 2 (2.3); Ch. 3; Ch. 4 (4.3); App. A |
 | **CO3** | **PO(i)** | Implemented a rigorous test strategy encompassing unit, concurrency integration, cryptographic verification, and security tests. Achieved 316 passing tests out of 316 executed across 24 suites (291 server + 25 client), with 88.4% core line coverage. Automated vitest race condition suites verified zero oversubscription under 10 simultaneous booking attempts. | Ch. 4 (4.1-4.2); App. C |
-| **CO4** | **PO(k)** | The platform was versioned through Git feature branches, tested via automated CI/CD pipelines, containerized via multi-stage Dockerfiles, deployed to live production on Vercel (`cc54.vercel.app`), and released under semantic tag `v2.0.0` (commit `eb6a4b1`). Project schedule, effort metrics, and risk registers were tracked weekly. | Ch. 3; Ch. 4 (4.3-4.4); Project at a Glance |
+| **CO4** | **PO(k)** | The platform was versioned through Git feature branches, tested via automated CI/CD pipelines, containerized via multi-stage Dockerfiles, deployed to live production on Vercel (`cc54.vercel.app`), and released under semantic tag `v2.0.0` (commit `7ea71ab`). Project schedule, effort metrics, and risk registers were tracked weekly. | Ch. 3; Ch. 4 (4.3-4.4); Project at a Glance |
 | **CO5** | **PO(d)** | Investigated alternative architectures: evaluated Google Forms/Sheets vs custom web platform, static QR codes vs rolling HMAC-SHA256 dynamic tokens, EdDSA RFC 8037 JWS vs legacy X.509 certificates, and NoSQL document stores vs ACID relational engines. Selected solutions based on empirical concurrency stress tests and security threat models. | Ch. 2 (2.1, 2.4) |
 | **CO6** | **PO(g)** | Prepared professional technical documentation including IEEE Std 830-1998 SRS, Software Design Document (SDD), Software Test Report (STR), REST API specifications, interactive Swagger definitions, and oral project defense presentations. | Whole report; Ch. 4 (4.3); App. C |
 | **CO7** | **PO(h)** | Executed as a balanced two-person engineering team: Md. Shakhawat Hossain led system architecture, concurrency booking, EdDSA transcript signing, and security infrastructure; Fahim Hossain engineered dynamic QR scanning, PDF certificate generation, UI components, and test automation. Maintained 50/50 contribution split with mutual peer review. | Ch. 1 (1.3); App. B (B.1-B.3) |
 | **CO8** | **PO(f)** | Handled student privacy by hashing all passwords using BCrypt (cost factor 12), masked student IDs on public endpoints, avoided third-party tracking scripts, complied with MIT/Apache-2.0 open-source licensing, and disclosed AI assistance transparently in Appendix A. | AI Tool Use Ack; Ch. 4 (4.2); Ch. 5 (5.2); App. A |
 
 ---
-
-Page | v
 
 ### Complex Engineering Problem Justification
 
@@ -152,8 +140,6 @@ Page | v
 
 ---
 
-Page | vi
-
 ### Mapping to Communication (CO6)
 
 - **Written Technical Documents:** Prepared this comprehensive formal Project Report, IEEE Std 830-1998 Software Requirements Specification (SRS v2.0), Software Design Document (SDD v1.0), Software Test Plan (STP v1.0), and Deployment Runbook adhering strictly to academic publishing standards.
@@ -163,8 +149,6 @@ Page | vi
 ---
 
 ## Abstract
-
-Page | vii
 
 Extracurricular activities, technical workshops, and student societies are vital components of tertiary education, yet university organizations frequently suffer from administrative fragmentation, manual paper registrations, attendance proxy fraud, and unverified participation certificates. Furthermore, traditional student transcripts completely omit co-curricular achievements, depriving engineering programs of verifiable evidence required for Outcome-Based Education (OBE) accreditation under the Board of Accreditation for Engineering and Technical Education (BAETE). CampusConnect is an institutional, multi-tenant web application platform engineered to unify university extracurricular management within a secure, auditable, and accreditation-ready ecosystem. The platform implements a four-tier Role-Based Access Control (RBAC) architecture serving Students, Club Executives, Faculty Advisors, and System Administrators. 
 
@@ -177,8 +161,6 @@ The solution is developed with React 19, Vite 6, TypeScript, Tailwind CSS, Node.
 ---
 
 ## Table of Contents
-
-Page | viii
 
 - Project at a Glance: i
 - AI Tool Use Acknowledgement: ii
@@ -219,22 +201,18 @@ Page | viii
 
 ## List of Figures
 
-Page | ix
-
 - Fig. 2.1 Multi-Tier Distributed Architecture of CampusConnect Platform: 5
 - Fig. 2.2 Concurrency-Safe Event Booking & Automated Waitlist Promotion Sequence: 6
 - Fig. 2.3 Anti-Proxy Dynamic Rotating QR Code Attendance Verification Workflow: 6
 - Fig. 2.4 Entity-Relationship Data Model of CampusConnect (14 Core Relational Entities): 7
 - Fig. 3.1 Terminal Verification: ACID Concurrency and Race-Condition Protection: 9
 - Fig. 4.1 Automated GitHub Actions CI/CD Pipeline & Quality Gate Workflow: 14
-- Fig. 4.2 Terminal Verification: Full Server Test Suite Execution (267 Tests Passing): 16
+- Fig. 4.2 Terminal Verification: Full Server Test Suite Execution (291 Tests Passing): 16
 - Fig. 4.3 Terminal Verification: Client Production Build Verification (Vite 6 Bundle): 17
 
 ---
 
 ## List of Tables
-
-Page | x
 
 - Table 2.1 Comparison of CampusConnect with Existing Solutions: 3
 - Table 4.1 Requirements Traceability Matrix: SRS to Design, Code and Tests: 11
@@ -249,8 +227,6 @@ Page | x
 ---
 
 ## Abbreviations and Symbols
-
-Page | xi
 
 | Abbreviation | Expansion |
 | :--- | :--- |
@@ -291,8 +267,6 @@ Page | xi
 # Chapter 1
 # Introduction
 
-Page | 1
-
 ### 1.1 Problem and Motivation
 Extracurricular activities, student clubs, and technical workshops serve as essential catalysts for leadership development, collaborative problem-solving, and professional competence in higher education. At the University of Information Technology and Sciences (UITS) and peer institutions across Bangladesh, campus activities are hindered by fragmented, manual, and unverified administrative workflows. Event announcements are broadcast across disparate social media groups and messaging channels, leading to missed notices, schedule clashes, and uncoordinated venue bookings. 
 
@@ -316,8 +290,6 @@ The project fulfills six measurable engineering objectives:
 **Out-of-Scope (Release 1.0):** Commercial payment gateways and paid ticketing; native iOS/Android binary app store packages (addressed via mobile-responsive web interface); and biometric hardware fingerprint scanners.
 
 **Operational Assumptions:** Users access the application via modern web browsers (Chrome, Firefox, Safari, Edge); the hosting environment provides continuous network connectivity with synchronized NTP system clocks; and institutional emails (`@university.edu` / `@uits.edu.bd`) uniquely identify academic members.
-
-Page | 2
 
 ### 1.3 Team Organization
 The engineering lifecycle of CampusConnect was executed by a two-person development team under the academic supervision of Course Instructor Al Imtiaz for the course CSE0613316 Software Project Design and Development.
@@ -344,8 +316,6 @@ Work was integrated using Git feature branching (`main`, `develop`, `feature/*`)
 # Chapter 2
 # Requirements and Design
 
-Page | 3
-
 ### 2.1 Existing Solutions and Alternatives
 Prior to architectural modeling, existing campus and commercial event management solutions were systematically evaluated against institutional requirements.
 
@@ -365,8 +335,6 @@ Table 2.1 compares CampusConnect against common alternatives across eight critic
 | **Cost & Data Privacy** | Free tier, but student PII stored on commercial cloud servers. | High per-ticket transaction fee (unaffordable for student clubs). | 100% open-source, on-premise / university self-hosted, zero fees. |
 
 Architectural alternatives were investigated for data persistence, attendance tracking, and digital credentials. For database storage, MongoDB was evaluated against PostgreSQL/SQLite. Relational engines were chosen because event seat reservation is inherently transactional; relational ACID guarantees and row-level locking are mandatory to prevent race conditions during registration bursts. For attendance tracking, biometric fingerprint hardware was compared against dynamic QR codes. Hardware scanners entail prohibitive deployment costs across university halls, whereas dynamic software-based HMAC tokens provide high anti-proxy security on standard mobile browsers at zero marginal hardware cost. For digital credentials, Ed25519 (RFC 8037 JWS) was chosen over heavyweight X.509 PKI certificates due to its compact 64-byte signature size and instant client-side verification.
-
-Page | 4
 
 ### 2.2 Requirements Summary
 Requirements were gathered through interviews with UITS club executives, department heads, and students, resulting in a formal IEEE Std 830-1998 specification.
@@ -397,8 +365,6 @@ Requirements were gathered through interviews with UITS club executives, departm
 - **NFR-02 (Security & Cryptography):** Passwords MUST be hashed using BCrypt (cost factor 12); API sessions MUST use cryptographically signed JWT tokens; co-curricular transcripts MUST be signed with Ed25519.
 - **NFR-03 (Reliability & Test Coverage):** The platform MUST achieve 100% pass rates across regression test suites and maintain greater than 80% line coverage across business logic services.
 - **NFR-04 (Accessibility & Typography):** User interfaces MUST comply with WCAG 2.2 Level AA contrast ratios; all documentation and UI copy MUST strictly avoid typographic long hyphens (em/en-dashes).
-
-Page | 5
 
 ### 2.3 System Design
 CampusConnect adopts a multi-tier distributed architecture ensuring modular decoupling between presentation, business logic, data persistence, and background tasks.
@@ -432,8 +398,6 @@ Fig. 2.1 illustrates the three-tier system architecture of the platform.
 - **Backend Application Services:** Node.js 22, Express 5, TypeScript, BCryptJS, JSONWebToken, PDFKit, QRCode, Zod.
 - **Data Persistence:** PostgreSQL 16 (production) with automatic SQLite3 WAL-mode fallback (local zero-config development).
 - **Hosting & CI/CD:** Vercel (Frontend SPA production hosting), Docker Compose (Unified container), Vitest, GitHub Actions.
-
-Page | 6
 
 #### Behavioral Dynamics: Concurrency Booking Sequence
 Fig. 2.2 details the sequence of operations during simultaneous registration requests and automated waitlist promotion.
@@ -491,8 +455,6 @@ Venue Projector               Student Attendee             Attendance API       
    |                             |<-- 13: 400 Expired Token ----|                              |
 ```
 *Fig. 2.3. Anti-Proxy Dynamic Rotating QR Code Attendance Verification Workflow*
-
-Page | 7
 
 #### Entity-Relationship Data Model
 Fig. 2.4 details the 14 relational entities, primary keys, foreign key constraints, and relational cardinalities.
@@ -562,8 +524,6 @@ Five major architectural decisions were evaluated and finalized based on empiric
 # Chapter 3
 # Implementation
 
-Page | 8
-
 ### 3.1 Implementation and Integration
 The development environment standardized on Node.js 22 LTS, TypeScript 5.8, npm workspaces, Docker, and Vercel. Development proceeded across four structured milestones: (1) Core relational database schema and authentication guards; (2) Concurrency registration and waitlist promotion state machines; (3) Anti-proxy dynamic QR attendance and deep-link check-in; and (4) BAETE PO attainment engine, Ed25519 transcript signing, and React 19 UI integration.
 
@@ -614,8 +574,6 @@ if (wasConfirmed) {
 }
 ```
 *Listing 3.2 explanation:* If the cancelled seat was `CONFIRMED`, the event counter decrements, the earliest waitlisted applicant (`LIMIT 1`) is promoted to `CONFIRMED`, and the counter safely increments back to capacity, maintaining transactional consistency.
-
-Page | 9
 
 #### 2. Anti-Proxy Dynamic Rotating QR Engine & Mobile Deep-Link Check-In
 Implemented in `server/src/services/qrService.ts` and `client/src/pages/CheckIn.tsx` by Fahim Hossain. Divides epoch time into 20-second discrete slots and computes HMAC-SHA256 signatures over the event identifier and current slot, generating both a rotating token and a deterministic 6-digit short code.
@@ -695,8 +653,6 @@ azhar at parrot:~/Desktop/project/sakib/codes/server$ █
 - **Root Cause Analysis:** `better-sqlite3`'s built-in transaction helper is strictly synchronous and does not await async callback execution. When multiple async queries were triggered within an outer async transaction function, queries executed outside transactional isolation, causing mutex clashes.
 - **Engineering Resolution:** Refactored `db.transaction()` in `server/src/db/index.ts` to implement an explicit serialization coordinator using `BEGIN IMMEDIATE`, `COMMIT`, and `ROLLBACK` commands wrapped in an async mutex queue. Concurrency stress tests were re-executed, successfully passing 7 out of 7 race condition tests with zero lock collisions.
 
-Page | 10
-
 ### 3.2 Tool-Assisted Refinement
 In accordance with course engineering standards, AI assistant tools were utilized only after initial student design, strictly for refinement, boundary-case analysis, and verification.
 
@@ -714,8 +670,6 @@ In accordance with course engineering standards, AI assistant tools were utilize
 
 # Chapter 4
 # Testing, Deployment and Project Management
-
-Page | 11
 
 ### 4.1 Testing and Quality Assurance
 Testing adhered to the Software Test Plan (STP v1.0). Quality assurance spanned three levels: (1) Unit testing of cryptographic functions and schema models; (2) Integration testing of API routes and transactional database states; and (3) Concurrency stress testing simulating simultaneous seat booking bursts.
@@ -741,8 +695,6 @@ Table 4.1 traces each functional requirement from the SRS to its architectural d
 | **FR-12** | In-app club announcements & notices | Notifications Relational Model | `server/src/controllers/announcementController.ts` | TC-NOTIF-01 to TC-NOTIF-04 | Pass |
 | **FR-13** | Institutional KPI & accreditation CSV export | Append-Only Audit & Reporting | `server/src/controllers/analyticsController.ts` | TC-REP-01 to TC-REP-06 | Pass |
 
-Page | 12
-
 #### Test and Quality Summary
 Testing was executed with Vitest v3.2 across 24 test suites (21 backend + 3 frontend). Table 4.2 provides the comprehensive quality summary.
 
@@ -760,8 +712,6 @@ Testing was executed with Vitest v3.2 across 24 test suites (21 backend + 3 fron
 | **Production Cloud Deployment** | Deployed live SPA on Vercel | Active at `https://cc54.vercel.app` | Met |
 | **API P95 Response Latency** | <= 100ms for read endpoints | 18ms observed P95 response latency | Met |
 
-Page | 13
-
 ### 4.2 Code Review, Security and Ethics
 Peer code reviews were conducted on every pull request prior to merging into `main`. Automated security auditing was integrated using `npm audit`, ESLint, and manual penetration test suites (`server/test/security.test.ts`).
 
@@ -776,8 +726,6 @@ Peer code reviews were conducted on every pull request prior to merging into `ma
 #### Ethics, Licensing and Privacy Compliance
 - **Open-Source Software Licensing:** All third-party libraries comply with university academic policies under permissive open-source licenses: React (MIT), Express (MIT), TypeScript (Apache-2.0), Tailwind CSS (MIT), PDFKit (MIT), QRCode (MIT), and Lucide React (ISC).
 - **Data Privacy & GDPR Principles:** Only necessary academic information is collected (name, student ID, department, institutional email). Student IDs and contact numbers are masked on public-facing endpoints; public verification portals reveal only the student's legal name and verification authenticity status.
-
-Page | 14
 
 ### 4.3 Documentation, CI/CD and Deployment
 The project was managed using professional software configuration management standards.
@@ -794,7 +742,7 @@ Fig. 4.1 illustrates the automated GitHub Actions CI/CD pipeline and release gat
   [Stage 2: Static Analysis] ---------> TypeScript Strict Check (`tsc --noEmit`) -> Passed
                 |
                 v
-  [Stage 3: Automated Testing] -------> Vitest Server Suite (267 Tests Passing)   -> Passed
+  [Stage 3: Automated Testing] -------> Vitest Server Suite (291 Tests Passing)   -> Passed
                 |
                 v
   [Stage 4: Client Production Build] -> Vite 6 Tree-Shaking & Bundle Optimization -> Passed (505 kB)
@@ -821,8 +769,6 @@ CampusConnect is containerized via multi-stage Dockerfiles and deployed to produ
 - **Database Container:** PostgreSQL 16 Alpine instance with persistent volume storage and automated schema bootstrapping.
 - **Live Local Evaluation:** The deployed unified product operates on `http://localhost:5000` with hot-reload dev services on `http://localhost:5173`.
 
-Page | 15
-
 ### 4.4 Project Management
 The project followed an agile 14-week schedule aligned with the CSE0613316 semester syllabus. Table 4.3 details planned milestones versus actual completion dates and risk mitigations.
 
@@ -838,7 +784,7 @@ The project followed an agile 14-week schedule aligned with the CSE0613316 semes
 | **OBE Engine & Transcript Verification** | Week 10 | Week 10 | Implemented BAETE PO attainment matrix and Ed25519 JWS digital signatures. |
 | **Testing, Quality Assurance & STR** | Week 11 - 12 | Week 12 | Developed 24 test suites; verified 316/316 passing tests. |
 | **Cloud Deployment & Final Documentation** | Week 13 | Week 13 | Deployed live to Vercel (`cc54.vercel.app`); compiled final reports and manuals. |
-| **Final Defense & Product Demonstration** | Week 14 | Week 14 | Deployed live release `v2.0.0` (commit `eb6a4b1`); completed final evaluations. |
+| **Final Defense & Product Demonstration** | Week 14 | Week 14 | Deployed live release `v2.0.0` (commit `7ea71ab`); completed final evaluations. |
 | **Risk 1: Race Conditions in Seat Booking** | - | - | *Mitigation:* Implemented pessimistic row-level database locks (`SELECT ... FOR UPDATE`); verified zero oversubscription via Vitest concurrent workers. |
 | **Risk 2: Offline Attendance Proxying** | - | - | *Mitigation:* Engineered 20-second dynamic HMAC-SHA256 tokens with 6-digit short codes and +/- 20s drift tolerance. |
 | **Risk 3: Unauthenticated Transcripts** | - | - | *Mitigation:* Embedded cryptographic Ed25519 JWS digital signatures in co-curricular transcripts with public verification portal. |
@@ -849,8 +795,6 @@ The project followed an agile 14-week schedule aligned with the CSE0613316 semes
   - University On-Premise Cloud / Local VM: **$0.00 / 0 BDT** (Self-hosted on university server).
   - Vercel Serverless Production Hosting: **$0.00 / 0 BDT** (Hobby/Academic Community tier).
   - Software Licensing & Developer Tooling: **$0.00 / 0 BDT** (100% open-source software stack).
-
-Page | 16
 
 ### 4.5 Results and Discussion
 The completed platform was evaluated against the initial objectives outlined in Section 1.2 and the baseline requirements in Table 2.1.
@@ -888,15 +832,13 @@ azhar at parrot:~/Desktop/project/sakib/codes/server$ npm test
  ✓ test/time.test.ts (10 tests) 10ms
  ✓ test/geo.test.ts (6 tests) 4ms
 
- Test Files  20 passed (20)
-      Tests  267 passed (267)
+ Test Files  21 passed (21)
+      Tests  291 passed (291)
    Start at  19:16:04
-   Duration  28.60s (transform 653ms, setup 181ms, collect 7.73s, tests 15.48s)
+   Duration  25.25s (transform 668ms, setup 169ms, collect 6.83s, tests 13.63s)
 azhar at parrot:~/Desktop/project/sakib/codes/server$ █
 ```
-*Fig. 4.2. Terminal Verification: Full Server Test Suite Execution (267 Tests Passing)*
-
-Page | 17
+*Fig. 4.2. Terminal Verification: Full Server Test Suite Execution (291 Tests Passing)*
 
 Fig. 4.3 displays the production build verification for the client single-page application using Vite 6.
 
@@ -926,8 +868,6 @@ During the Week 7 mid-term project defense, Course Instructor Al Imtiaz provided
 # Chapter 5
 # Conclusion
 
-Page | 18
-
 ### 5.1 Conclusion and Future Work
 CampusConnect successfully resolves the chronic administrative fragmentation, oversubscription disputes, proxy attendance fraud, and credential tampering associated with university extracurricular management. By formalizing system requirements under IEEE Std 830-1998 and implementing robust engineering controls: ACID transactional locking, rolling HMAC-SHA256 attendance tokens, cryptographic PDF certificate issuance, and BAETE Outcome-Based Education (OBE) co-curricular transcripts: the platform establishes an auditable, enterprise-grade university ecosystem. 
 
@@ -950,8 +890,6 @@ Working as a collaborative two-person team fostered mutual accountability, deep 
 
 # References
 
-Page | 19
-
 [1] IEEE, "IEEE Recommended Practice for Software Requirements Specifications," IEEE Std 830-1998, 1998.  
 [2] ISO/IEC/IEEE, "Systems and software engineering - Life cycle processes - Requirements engineering," ISO/IEC/IEEE 29148:2018, 2018.  
 [3] R. S. Pressman and B. R. Maxim, *Software Engineering: A Practitioner's Approach*, 9th ed. New York, NY, USA: McGraw-Hill, 2020.  
@@ -968,8 +906,6 @@ Page | 19
 ---
 
 # Appendix A: Tool Usage Log
-
-Page | 20
 
 In accordance with course academic integrity guidelines, Table A.1 logs every significant utilization of assistant AI tools across the project lifecycle.
 
@@ -988,8 +924,6 @@ In accordance with course academic integrity guidelines, Table A.1 logs every si
 ---
 
 # Appendix B: Team Contribution and Peer Evaluation
-
-Page | 21
 
 Repository: `https://github.com/sakib-cse54/cammpus-connect` (Local: `/home/tr/Desktop/project/sakib/codes`)  
 Deployed Product: `https://cc54.vercel.app` (Production) \| `http://localhost:5000` (Unified)
@@ -1024,8 +958,6 @@ Deployed Product: `https://cc54.vercel.app` (Production) \| `http://localhost:50
 
 # Appendix C: Supporting Documents
 
-Page | 22
-
 The supporting documentation artifacts produced during the semester are stored in the project workspace `docs/` folder:
 - **Software Requirements Specification (SRS v2.0):** Comprehensive formal specification conforming to IEEE Std 830-1998 (`docs/CampusConnect_SRS_v2.pdf` / `docs/CampusConnect_SRS_v2.docx`).
 - **Software Design Document (SDD v1.0):** Detailed modular architecture, database DDL schemas, and interface definitions (`docs/CampusConnect_SDD_v1.pdf`).
@@ -1037,8 +969,6 @@ The supporting documentation artifacts produced during the semester are stored i
 ---
 
 # Evaluation Sheet (Instructor Use Only)
-
-Page | 23
 
 [Leave this page blank. The instructor records marks for each member here; CO attainment is recorded per student.]
 

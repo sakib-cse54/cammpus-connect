@@ -332,50 +332,34 @@ def add_styled_table(doc, headers, data, font_size=9.0):
     p_after.paragraph_format.space_after = Pt(3)
 
 def setup_header_footer(section, is_roman=False, is_cover=False):
-    if is_cover:
-        section.different_first_page_header_footer = True
-        return
-        
+    """Strictly conforms to docx-azhar standard:
+    DO NOT CREATE A HEADER. DO NOT CREATE A FOOTER.
+    Ensures zero headers, zero footers, and zero running decorations."""
+    section.different_first_page_header_footer = False
     section.header.is_linked_to_previous = False
     section.footer.is_linked_to_previous = False
-    section.different_first_page_header_footer = False
     
-    # Page numbering type
+    # Clear all header paragraphs and runs
+    for p in section.header.paragraphs:
+        p.text = ""
+        for r in list(p.runs):
+            p._p.remove(r._r)
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+        
+    # Clear all footer paragraphs and runs
+    for p in section.footer.paragraphs:
+        p.text = ""
+        for r in list(p.runs):
+            p._p.remove(r._r)
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+        
+    # Remove explicit header/footer references from sectPr
     sectPr = section._sectPr
-    pgNumType = OxmlElement('w:pgNumType')
-    pgNumType.set(qn('w:fmt'), 'lowerRoman' if is_roman else 'decimal')
-    pgNumType.set(qn('w:start'), '1')
-    sectPr.append(pgNumType)
-    
-    # Header
-    p_hdr = section.header.paragraphs[0]
-    p_hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_hdr.paragraph_format.space_before = Pt(0)
-    p_hdr.paragraph_format.space_after = Pt(0)
-    r_hdr = p_hdr.add_run("CSE0613316: SDPM Final Report | CampusConnect Platform")
-    r_hdr.font.name = 'Times New Roman'
-    r_hdr.font.size = Pt(8.5)
-    r_hdr.font.italic = True
-    r_hdr.font.color.rgb = RGBColor(100, 116, 139)
-    
-    # Footer
-    p_ft = section.footer.paragraphs[0]
-    p_ft.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_ft.paragraph_format.space_before = Pt(0)
-    p_ft.paragraph_format.space_after = Pt(0)
-    
-    r_ft1 = p_ft.add_run("Department of CSE, UITS   |   Page | ")
-    r_ft1.font.name = 'Times New Roman'
-    r_ft1.font.size = Pt(9.0)
-    r_ft1.font.color.rgb = RGBColor(100, 116, 139)
-    
-    fld_xml = (
-        '<w:fldSimple ' + nsdecls('w') + ' w:instr="PAGE">'
-        '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/></w:rPr>'
-        '<w:t>' + ('i' if is_roman else '1') + '</w:t></w:r>'
-        '</w:fldSimple>'
-    )
-    p_ft._p.append(parse_xml(fld_xml))
+    for child in list(sectPr):
+        if child.tag.endswith('headerReference') or child.tag.endswith('footerReference'):
+            sectPr.remove(child)
 
 def parse_part_blocks(part_text):
     lines = part_text.strip().split("\n")

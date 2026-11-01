@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { db, toSqlitePlaceholders } from '../src/db/index.js';
 import { runSqliteMigrations, loadMigrations, resolveMigrationsDir } from '../src/db/migrate.js';
 
-describe('SQLite transaction robustness', () => {
+describe.skipIf(Boolean(process.env.TEST_DATABASE_URL))('SQLite transaction robustness', () => {
   beforeAll(async () => {
     await db.execute('CREATE TABLE IF NOT EXISTS tx_probe (id TEXT PRIMARY KEY, note TEXT)');
   });
